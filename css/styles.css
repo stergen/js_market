@@ -1,0 +1,13 @@
+.product-list:after {
+    content: '';
+    display: table;
+    clear: both;
+}
+.product-item {
+    width: 300px;
+    border: 1px solid rgba(0,0,0,0.2);
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    float: left;
+    margin: 10px 15px;
+    padding: 10px;
+}
