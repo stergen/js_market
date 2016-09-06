@@ -3,26 +3,34 @@ var tmpString       = '',
     shopCartPrice   = document.querySelector(".cart-price"),
     itemsInCart     = new Array();
 
+//rename
 var productOperation = function(event) {
-    var inputCount = event.target.parentNode.querySelector(".itemCount");
-    if ( event.target.classList.contains('plus') ) {
-        inputCount.value = parsceInt(inputCount.value) + 1;
+    var inputCount = event.target.parentNode.querySelector(".itemCount"),
+        hasClass = function(className) {
+            return event.target.classList.contains(className);
+        };
+
+    if ( hasClass('plus') ) {
+        inputCount.value = parseInt(inputCount.value) + 1;
+        return;
     }
-    if ( event.target.className == 'minus' && inputCount.value != 1) {
-        inputCount.value = +inputCount.value - 1;
+    if ( hasClass('minus') && inputCount.value != 1) {
+        inputCount.value = parseInt(inputCount.value) - 1;
+        return;
     }
-    if ( event.target.className == 'add-to-cart' ) {
+    if ( hasClass('add-to-cart') ) {
         addToCart(event);
     }
 };
+
 function addToCart (event) {
-    var _       = event.path[1],
+    var _       = event.target.parentNode,
         sum     = 0,
         count   = 0;
-    itemsInCart.push(   [_.getAttribute('data-id'),             //id product
-                        +_.querySelector(".itemCount").value,  //count items
-                        +_.querySelector(".product-price").innerText] );
-    console.log(itemsInCart);
+    itemsInCart.push(   [parseInt( _.getAttribute('data-id') ),             //id product
+                         parseInt( _.querySelector(".itemCount").value ),  //count items
+                         parseInt( _.querySelector(".product-price").innerText ) ]);
+
     for (var i = 0, l = itemsInCart.length; i < l; i++) {
         sum += itemsInCart[i][1] * itemsInCart[i][2];
         count += itemsInCart[i][1];
@@ -32,32 +40,54 @@ function addToCart (event) {
 }
 
 function getProduct (obj) {
-    var context = {
-        name: 20,
-    };
-    var kkk = 'asdas %(name)s asd as d'.replace(/%\((.+?)\)s/g, function(expr, paramName) {
-        return context[paramName];
-    });
+    var productBlock =  '<div class="product-item" data-id="%(id)">' +
+                        '<div class="product-img-wrap"></div>' +
+                        '<div class="product-name">%(name)</div>' +
+                        '<div class="product-price">%(price)</div><hr>' +
+                        '<button class="plus">+</button>' +
+                        '<input type="number" class="itemCount" min="1" value="1">' +
+                        '<button class="minus">-</button><hr>' +
+                        '<button class="add-to-cart">add to cart</button></div>';
 
-    console.log(kkk);
     var productNode = document.createElement('div');
-    productNode.innerHTML = '<div class="product-item" data-id="'+ obj.id +'">' +
-        '<div class="product-img-wrap"></div>'+
-        '<div class="product-name">'+ obj.name +'</div>'+
-        '<div class="product-price">'+ obj.price +'</div><hr>' +
-        '<button class="plus">+</button><input type="number" class="itemCount" min="1" value="2"><button class="minus">-</button>' +
-        '<hr><button class="add-to-cart">add to cart</button></div>';
+
+    while (productBlock.match(/%\((.+?)\)/) != null) {
+        productBlock = productBlock.replace(/%\((.+?)\)/, function(expr, paramName) {
+            if (obj[paramName.toString()] == undefined) {
+                return '';
+            }
+            return obj[paramName.toString()];
+        });
+    }
+    productNode.innerHTML = productBlock;
+
     return productNode;
 }
-function renderProductList(products) {
-    var fragProductList = document.createDocumentFragment();
-    var productList = document.querySelector(".product-list");
 
-    products.forEach(function(item){
-        fragProductList.appendChild( getProduct( item ) );
-    });
+function renderProductList(products) {
+    var fragProductList = document.createDocumentFragment(),
+        productList = document.querySelector(".product-list");
+
+    for ( var item in products ) {
+        fragProductList.appendChild( getProduct( products[item] ) );
+    }
+
     productList.appendChild( fragProductList );
-    productList.addEventListener('click', productOperation, false);
+    productList.addEventListener( 'click', productOperation, false );
 }
 
-renderProductList(window.products);
+function initApp() {
+    var DB = new Object();
+    window.products.forEach(function( item ) {
+       DB[ item.id ] = new Object({
+           id: item.id,
+           name: item.name,
+           price: item.price,
+           characteristic: item.characteristic
+       });
+    });
+
+    renderProductList(DB);
+}
+
+initApp();
