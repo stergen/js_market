@@ -1,7 +1,8 @@
 var tmpString       = '',
     shopCartCount   = document.querySelector(".cart-count"),
     shopCartPrice   = document.querySelector(".cart-price"),
-    itemsInCart     = new Array();
+    DB = new Object(),
+    itemsInCart = new Object();
 
 //rename
 var productOperation = function(event) {
@@ -24,16 +25,20 @@ var productOperation = function(event) {
 };
 
 function addToCart (event) {
-    var _       = event.target.parentNode,
-        sum     = 0,
-        count   = 0;
-    itemsInCart.push(   [parseInt( _.getAttribute('data-id') ),             //id product
-                         parseInt( _.querySelector(".itemCount").value ),  //count items
-                         parseInt( _.querySelector(".product-price").innerText ) ]);
+    var _           = event.target.parentNode,
+        idProduct   = _.getAttribute('data-id'),
+        sum         = 0,
+        count       = 0;
 
-    for (var i = 0, l = itemsInCart.length; i < l; i++) {
-        sum += itemsInCart[i][1] * itemsInCart[i][2];
-        count += itemsInCart[i][1];
+    if( !itemsInCart[ idProduct ] ) {
+        itemsInCart[ idProduct ] = 0;
+    }
+
+    itemsInCart[ idProduct ] += parseInt( _.querySelector(".itemCount").value );
+
+    for (var itemId in itemsInCart) {
+        sum += itemsInCart[itemId] * DB[itemId].price;// * itemsInCart[i][2];
+        count += itemsInCart[itemId];
     }
     shopCartCount.innerText = count;
     shopCartPrice.innerText = sum;
@@ -77,7 +82,8 @@ function renderProductList(products) {
 }
 
 function initApp() {
-    var DB = new Object();
+    //var DB = new Object(),
+    //    itemsInCart = new Object();
     window.products.forEach(function( item ) {
        DB[ item.id ] = new Object({
            id: item.id,
