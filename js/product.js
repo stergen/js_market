@@ -1,8 +1,8 @@
 var tmpString       = '',
-    shopCartCount   = document.querySelector(".cart-count"),
-    shopCartPrice   = document.querySelector(".cart-price"),
+    shopCartCount   = document.querySelector(".cart-count"), //del
+    shopCartPrice   = document.querySelector(".cart-price"), //del
     DB = new Object(),
-    itemsInCart = new Object();
+    itemsInCart = new Object(); //del
 
 //rename
 var productOperation = function(event) {
@@ -20,80 +20,123 @@ var productOperation = function(event) {
         return;
     }
     if ( hasClass('add-to-cart') ) {
-        addToCart(event);
+        productCard(event.target);
     }
 };
 
-function addToCart (event) {
-    var _           = event.target.parentNode,
-        idProduct   = _.getAttribute('data-id'),
-        sum         = 0,
-        count       = 0;
+//function addToCart (event) {
+//    var _           = event.target.parentNode,
+//        idProduct   = _.getAttribute('data-id'),
+//        sum         = 0,
+//        count       = 0;
+//
+//    if( !itemsInCart[ idProduct ] ) {
+//        itemsInCart[ idProduct ] = 0;
+//    }
+//
+//    itemsInCart[ idProduct ] += parseInt( _.querySelector(".itemCount").value );
+//
+//    for (var itemId in itemsInCart) {
+//        sum += itemsInCart[itemId] * DB[itemId].price;
+//        count += itemsInCart[itemId];
+//    }
+//    shopCartCount.innerText = count;
+//    shopCartPrice.innerText = sum;
+//}
 
-    if( !itemsInCart[ idProduct ] ) {
-        itemsInCart[ idProduct ] = 0;
-    }
-
-    itemsInCart[ idProduct ] += parseInt( _.querySelector(".itemCount").value );
-
-    for (var itemId in itemsInCart) {
-        sum += itemsInCart[itemId] * DB[itemId].price;// * itemsInCart[i][2];
-        count += itemsInCart[itemId];
-    }
-    shopCartCount.innerText = count;
-    shopCartPrice.innerText = sum;
+//дублюється, чи можна це змінити? (1)
+function ViewProductList (dataBase) {
+    this.DB = dataBase;
 }
 
-function getProduct (obj) {
-    var productBlock =  '<div class="product-item" data-id="%(id)">' +
-                        '<div class="product-img-wrap"></div>' +
-                        '<div class="product-name">%(name)</div>' +
-                        '<div class="product-price">%(price)</div><hr>' +
-                        '<button class="plus">+</button>' +
-                        '<input type="number" class="itemCount" min="1" value="1">' +
-                        '<button class="minus">-</button><hr>' +
-                        '<button class="add-to-cart">add to cart</button></div>';
+ViewProductList.prototype.renderProduct = function(objectProduct) {
 
-    var productNode = document.createElement('div');
+    var productBlock =  '<div class="product-img-wrap"></div>' +
+        '<div class="product-name">%(name)</div>' +
+        '<div class="product-price">%(price)</div><hr>' +
+        '<button class="plus">+</button>' +
+        '<input type="number" class="itemCount" min="1" value="1">' +
+        '<button class="minus">-</button><hr>' +
+        '<button class="add-to-cart">add to cart</button>';
 
     while (productBlock.match(/%\((.+?)\)/) != null) {
         productBlock = productBlock.replace(/%\((.+?)\)/, function(expr, paramName) {
-            if (obj[paramName.toString()] == undefined) {
+
+            if (objectProduct[paramName.toString()] == undefined) {
                 return '';
             }
-            return obj[paramName.toString()];
+            return objectProduct[paramName.toString()];
         });
     }
+
+    var productNode = document.createElement('div');
+    productNode.classList.add('product-item');
+    productNode.setAttribute('data-id', objectProduct['id']);
+
     productNode.innerHTML = productBlock;
 
     return productNode;
-}
+};
 
-function renderProductList(products) {
+ViewProductList.prototype.render = function() {
     var fragProductList = document.createDocumentFragment(),
         productList = document.querySelector(".product-list");
 
-    for ( var item in products ) {
-        fragProductList.appendChild( getProduct( products[item] ) );
+    for(var item in this.DB) {
+        fragProductList.appendChild( this.renderProduct(this.DB[item]) )
     }
 
     productList.appendChild( fragProductList );
     productList.addEventListener( 'click', productOperation, false );
+};
+
+//дублюється, чи можна це змінити? (2)
+function Card (dataBase) {
+    this.DB = dataBase;
+    this.itemsInCart = new Object();
+    this.summ = 0;
+    this.count = 0;
 }
 
+Card.prototype.add = function(eventTarget) {
+    var parentElement = eventTarget.parentNode,
+        idProduct = parentElement.getAttribute('data-id');
+
+    if( !this.itemsInCart[ idProduct ] ) {
+        this.itemsInCart[ idProduct ] = 0;
+    }
+
+    this.itemsInCart[ idProduct ] += parseInt( parentElement.querySelector(".itemCount").value );
+
+    for (var itemId in this.itemsInCart) {
+        this.sum += itemsInCart[itemId] * this.DB[itemId].price;
+        this.count += itemsInCart[itemId];
+    }
+};
+Card.prototype.getSumm = function() {
+  return this.summ;
+};
+Card.prototype.getCount = function() {
+    return this.count;
+};
+
+
+
 function initApp() {
-    //var DB = new Object(),
-    //    itemsInCart = new Object();
     window.products.forEach(function( item ) {
-       DB[ item.id ] = new Object({
+       DB[ item.id ] = {
            id: item.id,
            name: item.name,
            price: item.price,
            characteristic: item.characteristic
-       });
+       };
     });
+    var productList = new ViewProductList(DB),
+        productCard = new Card(DB);
+    productList.render();
 
-    renderProductList(DB);
+    //renderProductList(DB);
 }
 
 initApp();
+
