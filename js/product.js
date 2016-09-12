@@ -1,14 +1,23 @@
-function ViewProductList (dataBase) {
-    this.DB = dataBase;
-    this.template =    '<div class="product-img-wrap"></div>' +
-                                '<div class="product-name">%(name)</div>' +
-                                '<div class="product-price">%(price)</div><hr>' +
-                                '<button class="plus">+</button>' +
-                                '<input type="number" class="itemCount" min="1" value="1">' +
-                                '<button class="minus">-</button><hr>' +
-                                '<button class="add-to-cart">add to cart</button>';
+function convertArrToObject(arr) {
+    return  arr.reduce(function(db, currentItem) {
+                db[currentItem.id] = currentItem;
+                return db;
+            }, {});
 };
-ViewProductList.prototype.renderProduct = function(item) {
+
+
+// ================ PRODUCTS ================ 
+function ProductsView (dataBase) {
+    this.DB = dataBase;
+    this.template =     '<div class="product-img-wrap"></div>' +
+                        '<div class="product-name">%(name)</div>' +
+                        '<div class="product-price">%(price)</div><hr>' +
+                        '<button class="plus">+</button>' +
+                        '<input type="number" class="itemCount" min="1" value="1">' +
+                        '<button class="minus">-</button><hr>' +
+                        '<button class="add-to-cart">add to cart</button>';
+};
+ProductsView.prototype.renderProduct = function(item) {
 
     var productBlock = this.template.replace(/%\((.+?)\)/g, function(expr, paramName) {
         if(paramName in item) {
@@ -25,7 +34,7 @@ ViewProductList.prototype.renderProduct = function(item) {
     
     return itemElement;
 };
-ViewProductList.prototype.render = function() {
+ProductsView.prototype.render = function() {
     var fragProductList = document.createDocumentFragment(),
         productList = document.querySelector(".product-list");
 
@@ -36,21 +45,21 @@ ViewProductList.prototype.render = function() {
     productList.appendChild( fragProductList );
 };
 
+
 // ================ CART ================ 
-function Cart (dataBase) {
+function CartModal (dataBase) {
     this.DB = dataBase;
     this.items = {};
 }
-Cart.prototype.add = function(id, count) {
+CartModal.prototype.add = function(id, count) {
     if( !this.items[ id ] ) {
         this.items[ id ] = 0;
     }
     this.items[ id ] += count;
-    cartView(this.getTotalCount(), this.getTotalSum());
 };
-Cart.prototype.delete = function(id, count) {
+CartModal.prototype.delete = function(id, count) {
 };
-Cart.prototype.getTotalSum = function() {
+CartModal.prototype.getTotalSum = function() {
     var sum = 0;
     for (id in this.items) {
         sum += this.DB[id].price * this.items[id];
@@ -58,7 +67,7 @@ Cart.prototype.getTotalSum = function() {
 
     return sum;
 };
-Cart.prototype.getTotalCount = function() {
+CartModal.prototype.getTotalCount = function() {
     var count = 0;
     for (id in this.items) {
         count += this.items[id];
@@ -66,35 +75,28 @@ Cart.prototype.getTotalCount = function() {
     return count;
 };
 
-
-// ================ CART VIEW ================ 
-function cartView(count, sum) {
+function CartView() {
+    //constructor
+};
+CartView.prototype.renderCartInHeader = function(count, sum) {
     var countEl = document.querySelector(".cart-count"),
-        totalPrice = document.querySelector(".cart-price");
+    totalPrice = document.querySelector(".cart-price");
     
     countEl.innerText = count;
     totalPrice.innerText = sum;
 }
-
-function cartViewPopup(cartDB) {
+CartView.prototype.renderCartPopup = function(cartList) {
     var popupEl = document.createElement('div');
     popupEl.classList.add('popup');
-    
 }
 
-
-function convertArrToObject(arr) {
-    return  arr.reduce(function(db, currentItem) {
-                db[currentItem.id] = currentItem;
-                return db;
-            }, {});
-};
 
 // ================ APP ================ 
 function App() {
     this.DB = Object.freeze( convertArrToObject(window.products) );
-    this.cart = new Cart(this.DB);
-    this.products = new ViewProductList(this.DB);
+    this.cart = new CartModal(this.DB);
+    this.products = new ProductsView(this.DB);
+    this.init();
 };
 
 App.prototype.init = function() {   
@@ -127,8 +129,8 @@ App.prototype.route = function(event) {
     }
     if ( hasClass('add-to-cart') ) {
         this.cart.add(idItem, countItem);
+        //render headerCart
     }
 };
 
 var app = new App();
-app.init();
