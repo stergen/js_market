@@ -1,83 +1,30 @@
-var tmpString       = '',
-    shopCartCount   = document.querySelector(".cart-count"), //del
-    shopCartPrice   = document.querySelector(".cart-price"), //del
-    DB = new Object(),
-    itemsInCart = new Object(); //del
-
-//rename
-var productOperation = function(event) {
-    var inputCount = event.target.parentNode.querySelector(".itemCount"),
-        hasClass = function(className) {
-            return event.target.classList.contains(className);
-        };
-
-    if ( hasClass('plus') ) {
-        inputCount.value = parseInt(inputCount.value) + 1;
-        return;
-    }
-    if ( hasClass('minus') && inputCount.value != 1) {
-        inputCount.value = parseInt(inputCount.value) - 1;
-        return;
-    }
-    if ( hasClass('add-to-cart') ) {
-        productCard(event.target);
-    }
-};
-
-//function addToCart (event) {
-//    var _           = event.target.parentNode,
-//        idProduct   = _.getAttribute('data-id'),
-//        sum         = 0,
-//        count       = 0;
-//
-//    if( !itemsInCart[ idProduct ] ) {
-//        itemsInCart[ idProduct ] = 0;
-//    }
-//
-//    itemsInCart[ idProduct ] += parseInt( _.querySelector(".itemCount").value );
-//
-//    for (var itemId in itemsInCart) {
-//        sum += itemsInCart[itemId] * DB[itemId].price;
-//        count += itemsInCart[itemId];
-//    }
-//    shopCartCount.innerText = count;
-//    shopCartPrice.innerText = sum;
-//}
-
-//дублюється, чи можна це змінити? (1)
 function ViewProductList (dataBase) {
     this.DB = dataBase;
-}
-
-ViewProductList.prototype.renderProduct = function(objectProduct) {
-
-    var productBlock =  '<div class="product-img-wrap"></div>' +
-        '<div class="product-name">%(name)</div>' +
-        '<div class="product-price">%(price)</div><hr>' +
-        '<button class="plus">+</button>' +
-        '<input type="number" class="itemCount" min="1" value="1">' +
-        '<button class="minus">-</button><hr>' +
-        '<button class="add-to-cart">add to cart</button>';
-
-    while (productBlock.match(/%\((.+?)\)/) != null) {
-        productBlock = productBlock.replace(/%\((.+?)\)/, function(expr, paramName) {
-
-            if (objectProduct[paramName.toString()] == undefined) {
-                return '';
-            }
-            return objectProduct[paramName.toString()];
-        });
-    }
-
-    var productNode = document.createElement('div');
-    productNode.classList.add('product-item');
-    productNode.setAttribute('data-id', objectProduct['id']);
-
-    productNode.innerHTML = productBlock;
-
-    return productNode;
+    this.template =    '<div class="product-img-wrap"></div>' +
+                                '<div class="product-name">%(name)</div>' +
+                                '<div class="product-price">%(price)</div><hr>' +
+                                '<button class="plus">+</button>' +
+                                '<input type="number" class="itemCount" min="1" value="1">' +
+                                '<button class="minus">-</button><hr>' +
+                                '<button class="add-to-cart">add to cart</button>';
 };
+ViewProductList.prototype.renderProduct = function(item) {
 
+    var productBlock = this.template.replace(/%\((.+?)\)/g, function(expr, paramName) {
+        if(paramName in item) {
+            return item[paramName];
+        }
+        return expr;
+    });
+
+    var itemElement = document.createElement('div');
+
+    itemElement.setAttribute('data-id', item['id']);
+    itemElement.classList.add('product-item');
+    itemElement.innerHTML = productBlock;
+    
+    return itemElement;
+};
 ViewProductList.prototype.render = function() {
     var fragProductList = document.createDocumentFragment(),
         productList = document.querySelector(".product-list");
@@ -87,56 +34,101 @@ ViewProductList.prototype.render = function() {
     }
 
     productList.appendChild( fragProductList );
-    productList.addEventListener( 'click', productOperation, false );
 };
 
-//дублюється, чи можна це змінити? (2)
-function Card (dataBase) {
+// ================ CART ================ 
+function Cart (dataBase) {
     this.DB = dataBase;
-    this.itemsInCart = new Object();
-    this.summ = 0;
-    this.count = 0;
+    this.items = {};
 }
-
-Card.prototype.add = function(eventTarget) {
-    var parentElement = eventTarget.parentNode,
-        idProduct = parentElement.getAttribute('data-id');
-
-    if( !this.itemsInCart[ idProduct ] ) {
-        this.itemsInCart[ idProduct ] = 0;
+Cart.prototype.add = function(id, count) {
+    if( !this.items[ id ] ) {
+        this.items[ id ] = 0;
+    }
+    this.items[ id ] += count;
+    cartView(this.getTotalCount(), this.getTotalSum());
+};
+Cart.prototype.delete = function(id, count) {
+};
+Cart.prototype.getTotalSum = function() {
+    var sum = 0;
+    for (id in this.items) {
+        sum += this.DB[id].price * this.items[id];
     }
 
-    this.itemsInCart[ idProduct ] += parseInt( parentElement.querySelector(".itemCount").value );
-
-    for (var itemId in this.itemsInCart) {
-        this.sum += itemsInCart[itemId] * this.DB[itemId].price;
-        this.count += itemsInCart[itemId];
+    return sum;
+};
+Cart.prototype.getTotalCount = function() {
+    var count = 0;
+    for (id in this.items) {
+        count += this.items[id];
     }
-};
-Card.prototype.getSumm = function() {
-  return this.summ;
-};
-Card.prototype.getCount = function() {
-    return this.count;
+    return count;
 };
 
 
-
-function initApp() {
-    window.products.forEach(function( item ) {
-       DB[ item.id ] = {
-           id: item.id,
-           name: item.name,
-           price: item.price,
-           characteristic: item.characteristic
-       };
-    });
-    var productList = new ViewProductList(DB),
-        productCard = new Card(DB);
-    productList.render();
-
-    //renderProductList(DB);
+// ================ CART VIEW ================ 
+function cartView(count, sum) {
+    var countEl = document.querySelector(".cart-count"),
+        totalPrice = document.querySelector(".cart-price");
+    
+    countEl.innerText = count;
+    totalPrice.innerText = sum;
 }
 
-initApp();
+function cartViewPopup(cartDB) {
+    var popupEl = document.createElement('div');
+    popupEl.classList.add('popup');
+    
+}
 
+
+function convertArrToObject(arr) {
+    return  arr.reduce(function(db, currentItem) {
+                db[currentItem.id] = currentItem;
+                return db;
+            }, {});
+};
+
+// ================ APP ================ 
+function App() {
+    this.DB = Object.freeze( convertArrToObject(window.products) );
+    this.cart = new Cart(this.DB);
+    this.products = new ViewProductList(this.DB);
+};
+
+App.prototype.init = function() {   
+    this.products.render();
+    var productsWrapEl = document.querySelector(".product-list");
+    productsWrapEl.addEventListener('click', this.route.bind(this), false);
+};
+
+App.prototype.route = function(event) {
+
+    var countItemEl = event.target.parentNode.querySelector(".itemCount"),
+        countItem = event.target.parentNode.querySelector(".itemCount").value,
+        idItem  = event.target.parentNode.getAttribute('data-id');
+
+    // TODO: додать проверку на валідність
+    countItem = parseInt( countItem );
+    idItem = parseInt( idItem );
+
+    hasClass = function(className) {
+        return event.target.classList.contains(className);
+    };
+
+    if ( hasClass('plus') ) {
+        countItemEl.value = countItem + 1;
+        return;
+    }
+    if ( hasClass('minus') && countItem != 1) {
+        countItemEl.value = countItem - 1;
+        return;
+    }
+    if ( hasClass('add-to-cart') ) {
+        this.cart.add(idItem, countItem);
+    }
+};
+
+var app = new App();
+app.init();
