@@ -7,6 +7,27 @@ function convertArrToObject(arr) {
 
 
 // ================ PRODUCTS ================ 
+var ProductsModal = (function() {
+    var instance;
+
+    function setInstance() {
+        return  window.products.reduce(function(db, currentItem) {
+            db[currentItem.id] = currentItem;
+            return db;
+        }, {});
+    };
+
+    return {
+        get: function() {
+            if (!instance) {
+                instance = setInstance();
+            }
+            return instance;
+        }
+    };
+})();
+
+
 function ProductsView (dataBase) {
     this.DB = dataBase;
     this.template =     '<div class="product-img-wrap"></div>' +
@@ -75,6 +96,7 @@ CartModal.prototype.getTotalCount = function() {
     return count;
 };
 
+
 function CartView() {
     //constructor
 };
@@ -93,7 +115,7 @@ CartView.prototype.renderCartPopup = function(cartList) {
 
 // ================ APP ================ 
 function App() {
-    this.DB = Object.freeze( convertArrToObject(window.products) );
+    this.DB = ProductsModal.get();
     this.cart = new CartModal(this.DB);
     this.products = new ProductsView(this.DB);
     this.init();
