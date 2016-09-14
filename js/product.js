@@ -1,11 +1,3 @@
-function convertArrToObject(arr) {
-    return  arr.reduce(function(db, currentItem) {
-                db[currentItem.id] = currentItem;
-                return db;
-            }, {});
-};
-
-
 // ================ PRODUCTS ================ 
 var ProductsModal = (function() {
     var instance;
@@ -71,6 +63,7 @@ ProductsView.prototype.render = function() {
 function CartModal (dataBase) {
     this.DB = dataBase;
     this.items = {};
+    this.subscribers = [];
 }
 CartModal.prototype.add = function(id, count) {
     if( !this.items[ id ] ) {
@@ -95,6 +88,32 @@ CartModal.prototype.getTotalCount = function() {
     }
     return count;
 };
+//-------
+CartModal.prototype.subscribe = function(fn) {
+
+    this.subscribers.push(fn);
+};
+CartModal.prototype.unsubscribe = function(fn) {
+    var i = 0,
+        len = this.subscribers.length;
+   
+    for (; i < len; i++) {
+        if (this.subscribers[i] === fn) {
+            this.subscribers.splice(i, 1);
+            return;
+        }
+    }
+};
+CartModal.prototype.publish = function(data) {
+    var i = 0,
+        len = this.subscribers.length;
+   
+    for (; i < len; i++) {
+        this.subscribers[i](data);
+    }        
+};
+
+
 
 
 function CartView() {
@@ -117,16 +136,17 @@ CartView.prototype.renderCartPopup = function(cartList) {
 function App() {
     this.DB = ProductsModal.get();
     this.cart = new CartModal(this.DB);
+    this.cartView = new CartView();
     this.products = new ProductsView(this.DB);
+    debugger;
+    this.cart.subscribe(this.cart.add);
     this.init();
 };
-
 App.prototype.init = function() {   
     this.products.render();
     var productsWrapEl = document.querySelector(".product-list");
     productsWrapEl.addEventListener('click', this.route.bind(this), false);
 };
-
 App.prototype.route = function(event) {
 
     var countItemEl = event.target.parentNode.querySelector(".itemCount"),
@@ -151,7 +171,7 @@ App.prototype.route = function(event) {
     }
     if ( hasClass('add-to-cart') ) {
         this.cart.add(idItem, countItem);
-        //render headerCart
+        this.cart.publish(this.cartView.renderCartInHeader);
     }
 };
 
