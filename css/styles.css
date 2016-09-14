@@ -11,3 +11,93 @@
     margin: 10px 15px;
     padding: 10px;
 }
+
+.black-bg-popup {
+	background: rgba(0, 0, 0, 0.5);
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	left: 0;
+	top: 0;
+}
+
+.popup {
+	min-width: 320px;
+	width: 80%;
+	background: white;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	padding: 15px;
+	transform: translate(-50%, -50%);
+}
+.close-popup {
+	position: absolute;
+	background: rgba(0,0,0,0.5);
+	height: 20px;
+	width: 20px;
+	right: 0;
+	top: 0;
+	cursor: pointer;
+}
+.close-popup:hover {
+	background: black;
+}
+.close-popup:after,
+.close-popup:before {
+	content: '';
+	position: absolute;
+	height: 20px;
+	width: 1px;
+	top: 0;
+	background: #fff;
+}
+.close-popup:before {
+	left: 10px;
+    transform: rotate(-45deg);
+}
+.close-popup:after {
+    right: 9px;
+    transform: rotate(45deg);
+}
+.body-popup:after {
+	display: table;
+	width: 100%;
+	clear: both;
+}
+
+.item-popup {
+	display: table;
+	width: 100%;
+}
+.item-popup:not(:last-child) {
+	border-bottom: 1px solid #eee;
+}
+.item-popup > div {
+	vertical-align: middle;
+	display: table-cell;
+	padding: 10px;
+}
+
+.item-popup .item-price,
+.item-popup .item-count,
+.item-popup .item-delate,
+.item-popup .item-total-price {
+	text-align: center;
+}
+.item-popup .item-name {
+	width: 40%;
+}
+.item-popup .item-price,
+.item-popup .item-total-price {
+	width: 20%
+}
+.item-popup .item-count {
+	width: 15%;
+}
+.item-popup .item-delate {
+	width: 5%;
+}
+.item-delate .del {
+	cursor: pointer;
+}

@@ -22,13 +22,13 @@ var ProductsModal = (function() {
 
 function ProductsView (dataBase) {
     this.DB = dataBase;
-    this.template =     '<div class="product-img-wrap"></div>' +
-                        '<div class="product-name">%(name)</div>' +
-                        '<div class="product-price">%(price)</div><hr>' +
-                        '<button class="plus">+</button>' +
-                        '<input type="number" class="itemCount" min="1" value="1">' +
-                        '<button class="minus">-</button><hr>' +
-                        '<button class="add-to-cart">add to cart</button>';
+    this.template = '<div class="product-img-wrap"></div>' +
+                    '<div class="product-name">%(name)</div>' +
+                    '<div class="product-price">%(price)</div><hr>' +
+                    '<button class="plus">+</button>' +
+                    '<input type="number" class="itemCount" min="1" value="1">' +
+                    '<button class="minus">-</button><hr>' +
+                    '<button class="add-to-cart">add to cart</button>';
 };
 ProductsView.prototype.renderProduct = function(item) {
 
@@ -70,6 +70,7 @@ CartModal.prototype.add = function(id, count) {
         this.items[ id ] = 0;
     }
     this.items[ id ] += count;
+    this.publish(this);
 };
 CartModal.prototype.delete = function(id, count) {
 };
@@ -117,19 +118,57 @@ CartModal.prototype.publish = function(data) {
 
 
 function CartView() {
-    //constructor
+    this.wat = 'dsasd';
+    this.template = '<div class="header-popup">Cart' +
+        '<div class="close-popup"></div></div>' +
+        '<div class="body-popup">%(content)</div>' +
+        '<div class="footer-popup"></div>';
+
+    this.item = '<div class="item-popup">'+
+                '<div class="item-name">%(name)</div>'+
+                '<div class="item-price">%(price)</div>'+
+                '<div class="item-count">%(count)</div>'+
+                '<div class="item-total-price">%(total)</div>'+
+                '<div class="item-delate"><span class="del" data-id="%(id)">x</span></div></div>';
 };
-CartView.prototype.renderCartInHeader = function(count, sum) {
+CartView.prototype.renderCartInHeader = function(data) {
     var countEl = document.querySelector(".cart-count"),
-    totalPrice = document.querySelector(".cart-price");
-    
+        totalPrice = document.querySelector(".cart-price"),
+        count = data.getTotalCount(),
+        sum = data.getTotalSum();
+
     countEl.innerText = count;
     totalPrice.innerText = sum;
-}
-CartView.prototype.renderCartPopup = function(cartList) {
+};
+// отделить попап окно от самого контента внутри
+CartView.prototype.renderCartPopup = function(data) {
     var popupEl = document.createElement('div');
     popupEl.classList.add('popup');
-}
+
+    var items = '',
+        productBlock,
+        bodyEl = document.querySelector('body');        
+
+    for(item in data.items) {
+        productBlock = this.item.replace(/%\((.+?)\)/g, function(expr, paramName) {
+            //maybe ifelse
+            if(paramName in data.DB[item]) {
+                return data.DB[item][paramName];
+            }
+            if(paramName === "count") {
+                return data.items[item];
+            }
+            if(paramName === "total") {
+                return data.items[item] * data.DB[item]["price"];
+            }
+            return expr;
+        });
+        items += productBlock;
+    }
+
+    popupEl.innerHTML = this.template.replace("%(content)", items);
+    bodyEl.appendChild(popupEl);
+};
 
 
 // ================ APP ================ 
@@ -138,7 +177,8 @@ function App() {
     this.cart = new CartModal(this.DB);
     this.cartView = new CartView();
     this.products = new ProductsView(this.DB);
-    this.cart.subscribe(this.cart.add);
+    this.cart.subscribe(this.cartView.renderCartInHeader);
+    this.cart.subscribe(this.cartView.renderCartPopup.bind(this.cartView));
     this.init();
 };
 App.prototype.init = function() {   
@@ -170,7 +210,7 @@ App.prototype.route = function(event) {
     }
     if ( hasClass('add-to-cart') ) {
         this.cart.add(idItem, countItem);
-        this.cart.publish(this.cartView.renderCartInHeader);
+        
     }
 };
 
