@@ -138,7 +138,6 @@ function App() {
     this.cart = new CartModal(this.DB);
     this.cartView = new CartView();
     this.products = new ProductsView(this.DB);
-    debugger;
     this.cart.subscribe(this.cart.add);
     this.init();
 };
