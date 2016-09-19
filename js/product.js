@@ -96,7 +96,7 @@ CartModal.prototype.subscribe = function(fn) {
 
     this.subscribers.push(fn);
 };
-CartModal.prototype.unsubscribe = function(fn) {
+CartModal.prototype.unsubscribe = function(fn) {   
     var i = 0,
         len = this.subscribers.length;
    
@@ -171,11 +171,14 @@ CartView.prototype.renderPopupContent = function(data) {
         content += '<div class="item-popup">' + productBlock + '</div>';
     }
 
+    if (content === '') {
+        return '<center>Cart is empty</center>';
+    }
+
     return content;
 };
 CartView.prototype.renderPopup = function(data) {
     var content;
-    debugger;
     content = this.renderPopupContent(data);
     
     if (!this.cartOpen) {
@@ -183,11 +186,11 @@ CartView.prototype.renderPopup = function(data) {
         this.cartOpen = !this.cartOpen;
         return;
     }
-
     document.querySelector('.body-popup').innerHTML = content;
 };
 CartView.prototype.destroy = function() {
     document.querySelector('body').removeChild(this.popupWrapEL);
+    this.popupWrapEL.innerHTML = "";
     this.cartOpen = !this.cartOpen;
 };
 
@@ -199,6 +202,7 @@ function App() {
     this.cartView = new CartView();
     this.products = new ProductsView(this.DB);
     this.cart.subscribe(this.cartView.renderCartInHeader);
+    this.renderPopup = this.cartView.renderPopup.bind(this.cartView);
     this.init();
 };
 App.prototype.init = function() {   
@@ -213,8 +217,6 @@ App.prototype.route = function(event) {
             countItem = event.target.parentNode.querySelector(".itemCount").value,
             idItem  = event.target.parentNode.getAttribute('data-id');
     }
-
-    this.cartView.renderPopup.bind(this.cartView);
 
     // TODO: додать проверку на валідність
     countItem = parseInt( countItem );
@@ -236,13 +238,11 @@ App.prototype.route = function(event) {
         this.cart.add(idItem, countItem);
     }
     if ( hasClass('header-shop-cart') ) {    
-        this.cart.subscribe(function() {
-            this.cartView.renderPopup();
-        });  
+        this.cart.subscribe(this.renderPopup);  
         this.cartView.renderPopup(this.cart);
     }
     if ( hasClass('close-popup') ) {
-        this.cart.unsubscribe(this.cartView.renderPopup);
+        this.cart.unsubscribe(this.renderPopup);
         this.cartView.destroy();
     }
     if ( hasClass('del') ) {
