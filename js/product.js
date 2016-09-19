@@ -73,6 +73,8 @@ CartModal.prototype.add = function(id, count) {
     this.publish(this);
 };
 CartModal.prototype.delete = function(id, count) {
+    delete this.items[id];
+    this.publish(this);
 };
 CartModal.prototype.getTotalSum = function() {
     var sum = 0;
@@ -116,20 +118,21 @@ CartModal.prototype.publish = function(data) {
 
 
 
-
 function CartView() {
-    this.wat = 'dsasd';
+    this.popupWrapEL = document.createElement('div');
+    this.popupWrapEL.classList.add('popup-wrap');
+    this.cartOpen = false;
+
     this.template = '<div class="header-popup">Cart' +
         '<div class="close-popup"></div></div>' +
         '<div class="body-popup">%(content)</div>' +
         '<div class="footer-popup"></div>';
 
-    this.item = '<div class="item-popup">'+
-                '<div class="item-name">%(name)</div>'+
+    this.item = '<div class="item-name">%(name)</div>'+
                 '<div class="item-price">%(price)</div>'+
                 '<div class="item-count">%(count)</div>'+
                 '<div class="item-total-price">%(total)</div>'+
-                '<div class="item-delate"><span class="del" data-id="%(id)">x</span></div></div>';
+                '<div class="item-delate"><span class="del" data-id="%(id)">x</span></div>';
 };
 CartView.prototype.renderCartInHeader = function(data) {
     var countEl = document.querySelector(".cart-count"),
@@ -140,18 +143,20 @@ CartView.prototype.renderCartInHeader = function(data) {
     countEl.innerText = count;
     totalPrice.innerText = sum;
 };
-// отделить попап окно от самого контента внутри
-CartView.prototype.renderCartPopup = function(data) {
-    var popupEl = document.createElement('div');
-    popupEl.classList.add('popup');
-
-    var items = '',
-        productBlock,
-        bodyEl = document.querySelector('body');        
+CartView.prototype.renderPopupWrap = function(content) {
+    var popupEL = document.createElement('div');
+    popupEL.classList.add('popup');
+    popupEL.innerHTML = this.template.replace("%(content)", content);
+    this.popupWrapEL.appendChild(popupEL);
+    
+    document.querySelector('body').appendChild(this.popupWrapEL);
+};
+CartView.prototype.renderPopupContent = function(data) {
+    var content = '',
+        item = '';
 
     for(item in data.items) {
         productBlock = this.item.replace(/%\((.+?)\)/g, function(expr, paramName) {
-            //maybe ifelse
             if(paramName in data.DB[item]) {
                 return data.DB[item][paramName];
             }
@@ -163,11 +168,27 @@ CartView.prototype.renderCartPopup = function(data) {
             }
             return expr;
         });
-        items += productBlock;
+        content += '<div class="item-popup">' + productBlock + '</div>';
     }
 
-    popupEl.innerHTML = this.template.replace("%(content)", items);
-    bodyEl.appendChild(popupEl);
+    return content;
+};
+CartView.prototype.renderPopup = function(data) {
+    var content;
+    debugger;
+    content = this.renderPopupContent(data);
+    
+    if (!this.cartOpen) {
+        this.renderPopupWrap(content);
+        this.cartOpen = !this.cartOpen;
+        return;
+    }
+
+    document.querySelector('.body-popup').innerHTML = content;
+};
+CartView.prototype.destroy = function() {
+    document.querySelector('body').removeChild(this.popupWrapEL);
+    this.cartOpen = !this.cartOpen;
 };
 
 
@@ -178,19 +199,22 @@ function App() {
     this.cartView = new CartView();
     this.products = new ProductsView(this.DB);
     this.cart.subscribe(this.cartView.renderCartInHeader);
-    this.cart.subscribe(this.cartView.renderCartPopup.bind(this.cartView));
     this.init();
 };
 App.prototype.init = function() {   
     this.products.render();
-    var productsWrapEl = document.querySelector(".product-list");
+    var productsWrapEl = document.querySelector("body");
     productsWrapEl.addEventListener('click', this.route.bind(this), false);
 };
 App.prototype.route = function(event) {
+    if (event.target.parentNode.classList.contains('product-item')) {
 
-    var countItemEl = event.target.parentNode.querySelector(".itemCount"),
-        countItem = event.target.parentNode.querySelector(".itemCount").value,
-        idItem  = event.target.parentNode.getAttribute('data-id');
+        var countItemEl = event.target.parentNode.querySelector(".itemCount"),
+            countItem = event.target.parentNode.querySelector(".itemCount").value,
+            idItem  = event.target.parentNode.getAttribute('data-id');
+    }
+
+    this.cartView.renderPopup.bind(this.cartView);
 
     // TODO: додать проверку на валідність
     countItem = parseInt( countItem );
@@ -210,7 +234,19 @@ App.prototype.route = function(event) {
     }
     if ( hasClass('add-to-cart') ) {
         this.cart.add(idItem, countItem);
-        
+    }
+    if ( hasClass('header-shop-cart') ) {    
+        this.cart.subscribe(function() {
+            this.cartView.renderPopup();
+        });  
+        this.cartView.renderPopup(this.cart);
+    }
+    if ( hasClass('close-popup') ) {
+        this.cart.unsubscribe(this.cartView.renderPopup);
+        this.cartView.destroy();
+    }
+    if ( hasClass('del') ) {
+        this.cart.delete(event.target.getAttribute('data-id'));
     }
 };
 

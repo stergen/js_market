@@ -12,13 +12,20 @@
     padding: 10px;
 }
 
-.black-bg-popup {
+.popup-wrap:before {
+	content: '';
 	background: rgba(0, 0, 0, 0.5);
 	position: absolute;
 	bottom: 0;
 	right: 0;
 	left: 0;
 	top: 0;
+}
+
+.header-shop-cart {
+	cursor: pointer;
+	text-decoration: underline;
+	color: blue;
 }
 
 .popup {
