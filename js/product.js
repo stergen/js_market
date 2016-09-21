@@ -1,35 +1,21 @@
 // ================ PRODUCTS ================ 
-var DB = (function() {
-    var instance;
-
-    function setInstance() {
-        return  window.products.reduce(function(db, currentItem) {
-            db[currentItem.id] = currentItem;
-            return db;
-        }, {});
-    };
-
-    return {
-        get: function() {
-            if (!instance) {
-                instance = setInstance();
-            }
-            return instance;
-        }
-    };
-})();
-
 function ProductsModal (dataBase) {
-    this.DB = dataBase;
-    this.customDB;
+    this.productList;
+    this.init(dataBase)
+};
+ProductsModal.prototype.init = function(product) {
+    this.productList = product.reduce(function(db, currentItem) {
+        db[currentItem.id] = currentItem;
+        return db;
+    }, {});
 };
 ProductsModal.prototype.search = function(str) {
     var items = {},
         find;
-    for(index in this.DB) {
-        find = this.DB[index].name.toLowerCase().indexOf(str.toLowerCase());
+    for(index in this.productList) {
+        find = this.productList[index].name.toLowerCase().indexOf(str.toLowerCase());
         if (~find) {
-            items[index] = this.DB[index];
+            items[index] = this.productList[index];
         }
     }
     return items;
@@ -219,19 +205,18 @@ CartView.prototype.destroy = function() {
 
 // ================ APP ================ 
 function App() {
-    this.DB = DB.get();
-
-    this.pm = new ProductsModal(this.DB);
-
-    this.cart = new CartModal(this.DB);
+    this.products = new ProductsModal(window.products);
+    this.cart = new CartModal(this.products.productList);
     this.cartView = new CartView();
-    this.products = new ProductsView(this.DB);
+    this.productsView = new ProductsView(this.products.productList);
+
     this.cart.subscribe(this.cartView.renderCartInHeader);
     this.renderPopup = this.cartView.renderPopup.bind(this.cartView);
+
     this.init();
 };
 App.prototype.init = function() {   
-    this.products.render();
+    this.productsView.render();
     var productsWrapEl = document.querySelector("body");
     productsWrapEl.addEventListener('click', this.route.bind(this), false);
 };
@@ -279,11 +264,11 @@ App.prototype.route = function(event) {
     }
     if ( hasClass('btn-search') ) {
         searchText = document.getElementById('search');
-        items = this.pm.search(searchText.value);
-        this.products.render(items);
+        items = this.products.search(searchText.value);
+        this.productsView.render(items);
     }
     if ( hasClass('btn-crear') ) {
-        this.products.render();
+        this.productsView.render();
     }
 };
 var app = new App();
