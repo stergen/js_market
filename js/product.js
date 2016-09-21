@@ -1,5 +1,5 @@
 // ================ PRODUCTS ================ 
-var ProductsModal = (function() {
+var DB = (function() {
     var instance;
 
     function setInstance() {
@@ -18,6 +18,22 @@ var ProductsModal = (function() {
         }
     };
 })();
+
+function ProductsModal (dataBase) {
+    this.DB = dataBase;
+    this.customDB;
+};
+ProductsModal.prototype.search = function(str) {
+    var items = {},
+        find;
+    for(index in this.DB) {
+        find = this.DB[index].name.toLowerCase().indexOf(str.toLowerCase());
+        if (~find) {
+            items[index] = this.DB[index];
+        }
+    }
+    return items;
+};
 
 
 function ProductsView (dataBase) {
@@ -47,12 +63,18 @@ ProductsView.prototype.renderProduct = function(item) {
     
     return itemElement;
 };
-ProductsView.prototype.render = function() {
+ProductsView.prototype.render = function(items) {
+    if (items == undefined) {
+        items = this.DB;
+    }
+
     var fragProductList = document.createDocumentFragment(),
         productList = document.querySelector(".product-list");
 
-    for(var item in this.DB) {
-        fragProductList.appendChild( this.renderProduct(this.DB[item]) )
+    productList.innerHTML = '';
+
+    for(var item in items) {
+        fragProductList.appendChild( this.renderProduct(items[item]) )
     }
 
     productList.appendChild( fragProductList );
@@ -185,7 +207,7 @@ CartView.prototype.renderPopup = function(data) {
         this.renderPopupWrap(content);
         this.cartOpen = !this.cartOpen;
         return;
-    }
+    }    
     document.querySelector('.body-popup').innerHTML = content;
 };
 CartView.prototype.destroy = function() {
@@ -197,7 +219,10 @@ CartView.prototype.destroy = function() {
 
 // ================ APP ================ 
 function App() {
-    this.DB = ProductsModal.get();
+    this.DB = DB.get();
+
+    this.pm = new ProductsModal(this.DB);
+
     this.cart = new CartModal(this.DB);
     this.cartView = new CartView();
     this.products = new ProductsView(this.DB);
@@ -216,11 +241,15 @@ App.prototype.route = function(event) {
         var countItemEl = event.target.parentNode.querySelector(".itemCount"),
             countItem = event.target.parentNode.querySelector(".itemCount").value,
             idItem  = event.target.parentNode.getAttribute('data-id');
+
+        countItem = parseInt( countItem );
+        idItem = parseInt( idItem );
     }
 
-    // TODO: додать проверку на валідність
-    countItem = parseInt( countItem );
-    idItem = parseInt( idItem );
+    var searchText = '',
+        items = {};
+
+
 
     hasClass = function(className) {
         return event.target.classList.contains(className);
@@ -248,6 +277,13 @@ App.prototype.route = function(event) {
     if ( hasClass('del') ) {
         this.cart.delete(event.target.getAttribute('data-id'));
     }
+    if ( hasClass('btn-search') ) {
+        searchText = document.getElementById('search');
+        items = this.pm.search(searchText.value);
+        this.products.render(items);
+    }
+    if ( hasClass('btn-crear') ) {
+        this.products.render();
+    }
 };
-
 var app = new App();
