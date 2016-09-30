@@ -1,21 +1,26 @@
 // ================ PRODUCTS ================ 
-function ProductsModal (dataBase) {
+//use strict
+function ProductsModel (dataBase) {
 	this.productList;
 	this.init(dataBase)
 };
-ProductsModal.prototype.init = function(product) {
+ProductsModel.prototype.init = function(product) {
 	this.productList = product.reduce(function(db, currentItem) {
 		db[currentItem.id] = currentItem;
 		return db;
 	}, {});
 };
-ProductsModal.prototype.search = function(str) {
+ProductsModel.prototype.search = function(strSearch) {
 	var items = {},
-			find;
-debugger;
+			find,
+			name;
+	strSearch = strSearch.toLowerCase();
 	for(index in this.productList) {
-		find = this.productList[index].name.toLowerCase().indexOf(str.toLowerCase());
-		if (~find) {
+
+		name = this.productList[index].name.toLowerCase();
+		find = name.indexOf(strSearch);
+		
+		if (find > -1) {
 			items[index] = this.productList[index];
 		}
 	}
@@ -65,23 +70,23 @@ ProductsView.prototype.render = function(items) {
 
 
 // ================ CART ================ 
-function CartModal (dataBase) {
+function CartModel (dataBase) {
 	this.DB = dataBase;
 	this.items = {};
 	this.subscribers = [];
 }
-CartModal.prototype.add = function(id, count) {
+CartModel.prototype.add = function(id, count) {
 	if( !this.items[ id ] ) {
 		this.items[ id ] = 0;
 	}
 	this.items[ id ] += count;
 	this.publish(this);
 };
-CartModal.prototype.delete = function(id, count) {
+CartModel.prototype.delete = function(id, count) {
 	delete this.items[id];
 	this.publish(this);
 };
-CartModal.prototype.getTotalSum = function() {
+CartModel.prototype.getTotalSum = function() {
 	var sum = 0;
 	for (id in this.items) {
 		sum += this.DB[id].price * this.items[id];
@@ -89,7 +94,7 @@ CartModal.prototype.getTotalSum = function() {
 
 	return sum;
 };
-CartModal.prototype.getTotalCount = function() {
+CartModel.prototype.getTotalCount = function() {
 	var count = 0;
 	for (id in this.items) {
 		count += this.items[id];
@@ -97,11 +102,11 @@ CartModal.prototype.getTotalCount = function() {
 	return count;
 };
 // --- Observer ---
-CartModal.prototype.subscribe = function(fn) {
+CartModel.prototype.subscribe = function(fn) {
 
 	this.subscribers.push(fn);
 };
-CartModal.prototype.unsubscribe = function(fn) {   
+CartModel.prototype.unsubscribe = function(fn) {   
 	var i = 0,
 		len = this.subscribers.length;
    
@@ -112,7 +117,7 @@ CartModal.prototype.unsubscribe = function(fn) {
 		}
 	}
 };
-CartModal.prototype.publish = function(data) {
+CartModel.prototype.publish = function(data) {
 	var i = 0,
 		len = this.subscribers.length;
    
@@ -157,7 +162,7 @@ CartView.prototype.renderPopupWrap = function(content) {
 };
 CartView.prototype.renderPopupContent = function(data) {
 	var content = '',
-		item = '';
+			item = '';
 
 	for(item in data.items) {
 		productBlock = this.item.replace(/%\((.+?)\)/g, function(expr, paramName) {
@@ -201,8 +206,8 @@ CartView.prototype.destroy = function() {
 
 // ================ APP ================ 
 function App() {
-	this.products = new ProductsModal(window.products);
-	this.cart = new CartModal(this.products.productList);
+	this.products = new ProductsModel(window.products);
+	this.cart = new CartModel(this.products.productList);
 	this.cartView = new CartView();
 	this.productsView = new ProductsView(this.products.productList);
 
@@ -214,9 +219,9 @@ function App() {
 App.prototype.init = function() {   
 	this.productsView.render(this.products.productList);
 	var productsWrapEl = document.querySelector("body");
-	productsWrapEl.addEventListener('click', this.route.bind(this), false);
+	productsWrapEl.addEventListener('click', this.redirected.bind(this), false);
 };
-App.prototype.route = function(event) {
+App.prototype.routeOld = function(event) {
 	if (event.target.parentNode.classList.contains('product-item')) {
 
 		var countItemEl = event.target.parentNode.querySelector(".itemCount"),
@@ -266,6 +271,66 @@ App.prototype.route = function(event) {
 	if ( hasClass('btn-crear') ) {
 		this.productsView.render(this.products.productList);
 		return;
+	}
+};
+
+
+
+App.prototype.routes = function(event) {
+	var self = this;
+
+	if (event.target.parentNode.classList.contains('product-item')) {
+		var countItemEl = event.target.parentNode.querySelector(".itemCount"),
+				countItem = event.target.parentNode.querySelector(".itemCount").value,
+				idItem  = event.target.parentNode.getAttribute('data-id');
+		countItem = parseInt( countItem );
+		idItem = parseInt( idItem );
+	}
+
+	return {
+		'plus': function() {
+			countItemEl.value = countItem + 1;
+		},
+		'minus': function() {
+			if ( countItem != 1 ) {
+				countItemEl.value = countItem - 1;
+			}
+		},
+		'add-to-cart': function() {
+			self.cart.add(idItem, countItem);
+		},
+		'header-shop-cart': function() {
+			self.cart.subscribe(self.renderPopup);  
+			self.cartView.renderPopup(self.cart);
+		},
+		'close-popup': function() {
+			self.cart.unsubscribe(self.renderPopup);
+			self.cartView.destroy();
+		},
+		'del': function() {
+			self.cart.delete(event.target.getAttribute('data-id'));
+		},
+		'btn-search': function() {
+			var searchText = document.getElementById('search'),
+					items = self.products.search(searchText.value);
+			self.productsView.render(items);
+		},
+		'btn-crear': function() {
+			self.productsView.render(self.products.productList);
+		}
+	};
+};
+
+App.prototype.redirected = function() {
+	var hasClass = function(className) {
+		return event.target.classList.contains(className);
+	};
+	var route = this.routes.call(this, event)
+	for(var className in route) {
+		if ( route.hasOwnProperty(className) && hasClass(className) ) {
+			route[className]();
+			break;
+		}
 	}
 };
 
