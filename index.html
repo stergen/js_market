@@ -8,25 +8,27 @@
 <body>
     <header>
         <div class="logo">
-            <img src="" alt="" class="img-logo">
+            <img src="./img/logo.png" alt="" class="img-logo">
         </div>
         <div class="header-shop-cart">
             In Cart
-            <span class="cart-count"></span> (<span class="cart-price"></span>)
+            <span class="cart-count">0</span> 
+            <!-- (<span class="cart-price">0</span>) -->
         </div>
         <div class="search">
-            <input type="text" id="search">
+            <input class="input-search" type="text" id="search" placeholder="Search...">
             <button class="btn-search">search</button>
             <button class="btn-crear">clear</button>
         </div>
+    </header>
+    <div class="content">
         <input type="radio" name="gender" class="filter-item" value="all"> Все |
         <input type="radio" name="gender" class="filter-item" value="priceHighestFirst"> Від дорощого |
         <input type="radio" name="gender" class="filter-item" value="priceLowestFirst"> Від дешевшого
 
-    </header>
-    <section class="product-list">
-
-    </section>
+        <section class="product-list">
+        </section>
+    </div>
     <footer>
         footer
     </footer>

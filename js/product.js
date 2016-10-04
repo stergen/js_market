@@ -27,11 +27,12 @@ ProductsModel.prototype.search = function(strSearch) {
 	return items;
 };
 ProductsModel.prototype.sortType = {
-	'all': function() { return 0; },
-	'priceLowestFirst': function(a, b) { return a[1]['price'] - b[1]['price']; },
-	'priceHighestFirst': function(a, b) { return b[1]['price'] - a[1]['price']; },
+		'all': function() { return 0; },
+		'priceLowestFirst': function(a, b) { return a[1]['price'] - b[1]['price']; },
+		'priceHighestFirst': function(a, b) { return b[1]['price'] - a[1]['price']; }
 };
 ProductsModel.prototype.sort = function(type) {
+	type = type || 'all';
 	var sortable = [],
 			sortFunc = this.sortType[type];
 	for (itemName in this.productList) {
@@ -39,20 +40,21 @@ ProductsModel.prototype.sort = function(type) {
 	}
 
 	sortable.sort(function(a, b) {
-		return sortFunc.bind(this);
+		return sortFunc(a, b);
 	});
 	return sortable;
 };
 
 
+
 function ProductsView () {
-	this.template = '<div class="product-img-wrap"></div>' +
-					'<div class="product-name">%(name)</div>' +
-					'<div class="product-price">%(price)</div><hr>' +
-					'<button class="plus">+</button>' +
-					'<input type="number" class="itemCount" min="1" value="1">' +
-					'<button class="minus">-</button><hr>' +
-					'<button class="add-to-cart">add to cart</button>';
+	this.template = '<div class="product-img-wrap"><img src="./img/%(image)"/></div>' +
+									'<div class="product-name">%(name)</div>' +
+									'<button class="plus">+</button>' +
+									'<input type="number" class="itemCount" min="1" value="1" disabled>' +
+									'<button class="minus">-</button>' +
+									'<div class="product-price">%(price)</div>' +
+									'<button class="add-to-cart">add to cart</button>';
 };
 ProductsView.prototype.renderProduct = function(item) {
 
@@ -158,7 +160,7 @@ function CartView() {
 	this.template = '<div class="header-popup">Cart' +
 		'<div class="close-popup"></div></div>' +
 		'<div class="body-popup">%(content)</div>' +
-		'<div class="footer-popup"></div>';
+		'<div class="footer-popup">%(totalPrice)</div>';
 
 	this.item = '<div class="item-name">%(name)</div>'+
 				'<div class="item-price">%(price)</div>'+
@@ -168,17 +170,17 @@ function CartView() {
 };
 CartView.prototype.renderCartInHeader = function(data) {
 	var countEl = document.querySelector(".cart-count"),
-		totalPrice = document.querySelector(".cart-price"),
+		// totalPrice = document.querySelector(".cart-price"),
 		count = data.getTotalCount(),
 		sum = data.getTotalSum();
 
 	countEl.innerText = count;
-	totalPrice.innerText = sum;
+	// totalPrice.innerText = sum;
 };
 CartView.prototype.renderPopupWrap = function(content) {
 	var popupEL = document.createElement('div');
 	popupEL.classList.add('popup');
-	popupEL.innerHTML = this.template.replace("%(content)", content);
+	sampleTemplate = this.template.replace("%(content)", content);
 	this.popupWrapEL.appendChild(popupEL);
 	
 	document.querySelector('body').appendChild(this.popupWrapEL);
@@ -238,7 +240,6 @@ function App() {
 	this.renderPopup = this.cartView.renderPopup.bind(this.cartView);
 
 	this.init();
-	this.products.sort();
 };
 App.prototype.init = function() {   
 	this.productsView.render(this.products.productList);
@@ -288,9 +289,7 @@ App.prototype.routes = function(event) {
 			self.productsView.render(self.products.productList);
 		},
 		'filter-item': function() {
-			var a = event.target.value;
-			debugger;
-			var items = self.products.sort(a);
+			var items = self.products.sort( event.target.value );
 			self.productsView.render(items);
 		},
 	};
