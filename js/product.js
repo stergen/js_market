@@ -26,6 +26,23 @@ ProductsModel.prototype.search = function(strSearch) {
 	}
 	return items;
 };
+ProductsModel.prototype.sortType = {
+	'all': function() { return 0; },
+	'priceLowestFirst': function(a, b) { return a[1]['price'] - b[1]['price']; },
+	'priceHighestFirst': function(a, b) { return b[1]['price'] - a[1]['price']; },
+};
+ProductsModel.prototype.sort = function(type) {
+	var sortable = [],
+			sortFunc = this.sortType[type];
+	for (itemName in this.productList) {
+		sortable.push([itemName, this.productList[itemName]]);
+	}
+
+	sortable.sort(function(a, b) {
+		return sortFunc.bind(this);
+	});
+	return sortable;
+};
 
 
 function ProductsView () {
@@ -38,6 +55,12 @@ function ProductsView () {
 					'<button class="add-to-cart">add to cart</button>';
 };
 ProductsView.prototype.renderProduct = function(item) {
+
+	//если я преобразовал в масив
+	//item = Array.isArray(item) ? item[1] : item;
+	if ( Array.isArray(item) ) {
+		item = item[1];
+	}
 
 	var productBlock = this.template.replace(/%\((.+?)\)/g, function(expr, paramName) {
 		if(paramName in item) {
@@ -215,67 +238,13 @@ function App() {
 	this.renderPopup = this.cartView.renderPopup.bind(this.cartView);
 
 	this.init();
+	this.products.sort();
 };
 App.prototype.init = function() {   
 	this.productsView.render(this.products.productList);
 	var productsWrapEl = document.querySelector("body");
 	productsWrapEl.addEventListener('click', this.redirected.bind(this), false);
 };
-App.prototype.routeOld = function(event) {
-	if (event.target.parentNode.classList.contains('product-item')) {
-
-		var countItemEl = event.target.parentNode.querySelector(".itemCount"),
-			countItem = event.target.parentNode.querySelector(".itemCount").value,
-			idItem  = event.target.parentNode.getAttribute('data-id');
-
-		countItem = parseInt( countItem );
-		idItem = parseInt( idItem );
-	}
-
-	hasClass = function(className) {
-		return event.target.classList.contains(className);
-	};
-
-	if ( hasClass('plus') ) {
-		countItemEl.value = countItem + 1;
-		return;
-	}
-	if ( hasClass('minus') && countItem != 1) {
-		countItemEl.value = countItem - 1;
-		return;
-	}
-	if ( hasClass('add-to-cart') ) {
-		this.cart.add(idItem, countItem);
-		return;
-	}
-	if ( hasClass('header-shop-cart') ) {    
-		this.cart.subscribe(this.renderPopup);  
-		this.cartView.renderPopup(this.cart);
-		return;
-	}
-	if ( hasClass('close-popup') ) {
-		this.cart.unsubscribe(this.renderPopup);
-		this.cartView.destroy();
-		return;
-	}
-	if ( hasClass('del') ) {
-		this.cart.delete(event.target.getAttribute('data-id'));
-		return;
-	}
-	if ( hasClass('btn-search') ) {
-		var searchText = document.getElementById('search'),
-				items = this.products.search(searchText.value);
-		this.productsView.render(items);
-		return;
-	}
-	if ( hasClass('btn-crear') ) {
-		this.productsView.render(this.products.productList);
-		return;
-	}
-};
-
-
-
 App.prototype.routes = function(event) {
 	var self = this;
 
@@ -317,10 +286,15 @@ App.prototype.routes = function(event) {
 		},
 		'btn-crear': function() {
 			self.productsView.render(self.products.productList);
-		}
+		},
+		'filter-item': function() {
+			var a = event.target.value;
+			debugger;
+			var items = self.products.sort(a);
+			self.productsView.render(items);
+		},
 	};
 };
-
 App.prototype.redirected = function() {
 	var hasClass = function(className) {
 		return event.target.classList.contains(className);
