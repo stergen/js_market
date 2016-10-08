@@ -176,8 +176,9 @@ JSshop.CartView.prototype.renderCartInHeader = function(data) {
 };
 JSshop.CartView.prototype.renderPopupWrap = function(content) {
   var popupEL = document.createElement('div');
+  popupEL.innerHTML = this.template.replace("%(content)", content);
+  //popupEL.innerHTML = this.template.replace("%(totalPrice)", 50);
   popupEL.classList.add('popup');
-  sampleTemplate = this.template.replace("%(content)", content);
   this.popupWrapEL.appendChild(popupEL);
 
   document.querySelector('body').appendChild(this.popupWrapEL);
@@ -215,7 +216,6 @@ JSshop.CartView.prototype.renderPopup = function(data) {
   if (!this.cartOpen) {
     this.renderPopupWrap(content);
     this.cartOpen = !this.cartOpen;
-    return;
   }
   document.querySelector('.body-popup').innerHTML = content;
 };
@@ -267,6 +267,7 @@ JSshop.app.prototype.routes = function(event) {
     },
     'header-shop-cart': function() {
       self.cart.subscribe(self.renderPopup);
+      debugger;
       self.cartView.renderPopup(self.cart);
     },
     'close-popup': function() {
