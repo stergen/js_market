@@ -1,49 +1,45 @@
+'use strict';
 var JSshop = JSshop || {};
 
 // ================ PRODUCTS ================
 JSshop.ProductsModel = function(dataBase) {
-  this.productList;
+  this.objectProducts = {};
+  this.arrayProducts = [];
   this.init(dataBase)
 };
 JSshop.ProductsModel.prototype.init = function(product) {
-  this.productList = product.reduce(function(db, currentItem) {
+  /*
+  * convert to obj where id it`s key
+  * it`s need for fast get element
+  * */
+  this.objectProducts = product.reduce(function(db, currentItem) {
     db[currentItem.id] = currentItem;
     return db;
   }, {});
+  /*
+  * convert to array because we need
+  * sorting and search products
+  * */
+  for (var itemName in this.objectProducts) {
+    this.arrayProducts.push(this.objectProducts[itemName]);
+  }
 };
+//TODO: ужно обединить с фильтрацией
 JSshop.ProductsModel.prototype.search = function(strSearch) {
-  var items = {},
-    find,
-    name;
+  var items = [],
+      find,
+      name;
   strSearch = strSearch.toLowerCase();
-  for(index in this.productList) {
+  for(var index in this.objectProducts) {
 
-    name = this.productList[index].name.toLowerCase();
+    name = this.objectProducts[index].name.toLowerCase();
     find = name.indexOf(strSearch);
 
     if (find > -1) {
-      items[index] = this.productList[index];
+      items[items.length] = this.objectProducts[index];
     }
   }
   return items;
-};
-JSshop.ProductsModel.prototype.sortType = {
-  'all': function() { return 0; },
-  'priceLowestFirst': function(a, b) { return a[1]['price'] - b[1]['price']; },
-  'priceHighestFirst': function(a, b) { return b[1]['price'] - a[1]['price']; }
-};
-JSshop.ProductsModel.prototype.sort = function(type) {
-  type = type || 'all';
-  var sortable = [],
-    sortFunc = this.sortType[type];
-  for (itemName in this.productList) {
-    sortable.push([itemName, this.productList[itemName]]);
-  }
-
-  sortable.sort(function(a, b) {
-    return sortFunc(a, b);
-  });
-  return sortable;
 };
 
 JSshop.ProductsView = function() {
@@ -56,12 +52,6 @@ JSshop.ProductsView = function() {
     '<button class="add-to-cart">add to cart</button>';
 };
 JSshop.ProductsView.prototype.renderProduct = function(item) {
-
-  //если я преобразовал в масив
-  //item = Array.isArray(item) ? item[1] : item;
-  if ( Array.isArray(item) ) {
-    item = item[1];
-  }
 
   var productBlock = this.template.replace(/%\((.+?)\)/g, function(expr, paramName) {
     if(paramName in item) {
@@ -79,17 +69,16 @@ JSshop.ProductsView.prototype.renderProduct = function(item) {
   return itemElement;
 };
 JSshop.ProductsView.prototype.render = function(items) {
-
   var fragProductList = document.createDocumentFragment(),
-    productList = document.querySelector(".product-list");
+      objectProducts = document.querySelector(".product-list");
 
-  productList.innerHTML = '';
+  objectProducts.innerHTML = '';
 
-  for(var item in items) {
-    fragProductList.appendChild( this.renderProduct(items[item]) )
+  for (var count = items.length - 1; count > 0; count--) {
+    fragProductList.appendChild( this.renderProduct(items[count]) );
   }
 
-  productList.appendChild( fragProductList );
+  objectProducts.appendChild( fragProductList );
 };
 
 // ================ CART ================
@@ -97,7 +86,7 @@ JSshop.CartModel = function(dataBase) {
   this.DB = dataBase;
   this.items = {};
   this.subscribers = [];
-}
+};
 JSshop.CartModel.prototype.add = function(id, count) {
   if( !this.items[ id ] ) {
     this.items[ id ] = 0;
@@ -111,7 +100,7 @@ JSshop.CartModel.prototype.delete = function(id, count) {
 };
 JSshop.CartModel.prototype.getTotalSum = function() {
   var sum = 0;
-  for (id in this.items) {
+  for (var id in this.items) {
     sum += this.DB[id].price * this.items[id];
   }
 
@@ -119,7 +108,7 @@ JSshop.CartModel.prototype.getTotalSum = function() {
 };
 JSshop.CartModel.prototype.getTotalCount = function() {
   var count = 0;
-  for (id in this.items) {
+  for (var id in this.items) {
     count += this.items[id];
   }
   return count;
@@ -185,6 +174,7 @@ JSshop.CartView.prototype.renderPopupWrap = function(content) {
 };
 JSshop.CartView.prototype.renderPopupContent = function(data) {
   var content = '',
+    productBlock,
     item = '';
 
   for(item in data.items) {
@@ -225,12 +215,45 @@ JSshop.CartView.prototype.destroy = function() {
   this.cartOpen = !this.cartOpen;
 };
 
+// ================ SORT ================
+JSshop.sort = function(items, type) {
+  var sortFunction,
+      sortable = [];
+
+  switch (type) {
+    case 'priceLowestFirst':
+      sortFunction = function(a, b) { return a[1]['price'] - b[1]['price']; };
+      break;
+    case 'priceHighestFirst':
+      sortFunction = function(a, b) { return b[1]['price'] - a[1]['price']; };
+      break;
+    default:
+      sortFunction = function () { return 0 };
+  }
+
+  if ( Array.isArray(items) ) {
+    sortable = items;
+  } else  {
+    for (var itemName in items) {
+      sortable.push([itemName, items[itemName]]);
+    }
+  }
+
+  sortable.sort(function(a, b) {
+    return sortFunction(a, b);
+  });
+  return sortable;
+};
+
+
 // ================ APP ================
 JSshop.app = function() {
   this.products = new JSshop.ProductsModel(window.products);
-  this.cart = new JSshop.CartModel(this.products.productList);
+  this.cart = new JSshop.CartModel(this.products.objectProducts);
   this.cartView = new JSshop.CartView();
-  this.productsView = new JSshop.ProductsView(this.products.productList);
+  this.productsView = new JSshop.ProductsView(this.products.objectProducts);
+
+  this.sort = JSshop.sort;
 
   this.cart.subscribe(this.cartView.renderCartInHeader);
   this.renderPopup = this.cartView.renderPopup.bind(this.cartView);
@@ -238,7 +261,7 @@ JSshop.app = function() {
   this.init();
 };
 JSshop.app.prototype.init = function() {
-  this.productsView.render(this.products.productList);
+  this.productsView.render(this.products.arrayProducts);
   var productsWrapEl = document.querySelector("body");
   productsWrapEl.addEventListener('click', this.redirected.bind(this), false);
 };
@@ -267,7 +290,6 @@ JSshop.app.prototype.routes = function(event) {
     },
     'header-shop-cart': function() {
       self.cart.subscribe(self.renderPopup);
-      debugger;
       self.cartView.renderPopup(self.cart);
     },
     'close-popup': function() {
@@ -283,10 +305,10 @@ JSshop.app.prototype.routes = function(event) {
       self.productsView.render(items);
     },
     'btn-crear': function() {
-      self.productsView.render(self.products.productList);
+      self.productsView.render(self.products.arrayProducts  );
     },
     'filter-item': function() {
-      var items = self.products.sort( event.target.value );
+      var items = self.sort( self.products.arrayProducts, event.target.value );
       self.productsView.render(items);
     },
   };
@@ -295,6 +317,7 @@ JSshop.app.prototype.redirected = function() {
   var hasClass = function(className) {
     return event.target.classList.contains(className);
   };
+  //TODO: не ясно що потрібно зробити
   var route = this.routes.call(this, event)
   for(var className in route) {
     if ( route.hasOwnProperty(className) && hasClass(className) ) {
