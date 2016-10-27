@@ -233,17 +233,15 @@
     this.baseArray = array;
     this.decoratorsList = [];
   }
-  Filter.prototype.getFiltered = function() {
-
-    return this.baseArray;
-  }
   Filter.prototype.decorate = function(decorator, value) {
+    if ( value === "" || value === undefined ) return;
     this.decoratorsList.push([decorator, value]);
   }
   Filter.prototype.getFiltered = function() {
     var arr = this.baseArray,
         length = this.decoratorsList.length,
         i, name, value;
+    // TODO: first iterator without for(), need for init new arr
     for (i = 0; i < length; i++) {
       name = this.decoratorsList[i][0];
       value = this.decoratorsList[i][1];
@@ -255,7 +253,8 @@
   Filter.decorators.maxPrice = {
     getFiltered: function(arr, value) {
       return arr.filter(function(obj){
-        return obj.price <= value;
+        var a = obj.price <= value;
+        return a;
       });
     },
   };
@@ -268,9 +267,10 @@
   };  
   Filter.decorators.search = {
     getFiltered: function(arr, value) {
-      return arr.filter(function(obj){
-        var lowerName = obj.name.toLowerCase(),
-            seek = value.toLowerCase();
+      var lowerName, seek;
+      return arr.filter(function(obj) {
+        lowerName = obj.name.toLowerCase();
+        seek = value.toLowerCase();
 
         if (lowerName.indexOf(seek) > -1) { 
           return true; 
@@ -278,6 +278,7 @@
           return false; 
         }
       });
+      return arrNew;
     },
   }; 
 
@@ -294,14 +295,6 @@
     this.renderPopup = this.cartView.renderPopup.bind(this.cartView);
 
     this.init();
-
-    // this.filter.decorate('maxPrice', 15000);
-    // this.filter.decorate('minPrice', 6000);
-    // this.filter.decorate('search', 'asus');
-
-    // var lol = this.filter.getFiltered();
-    // debugger;
-
   };
 })();
 
@@ -346,20 +339,17 @@ window.app.prototype.routes = function(event) {
     'del': function() {
       self.cart.delete(event.target.getAttribute('data-id'));
     },
-    'search': function() {
-      debugger;
-      var searchText = document.getElementById('search'),
-          items = self.filter.add('find', searchText.value);
+    'filtered': function() {
+      var el = document.querySelectorAll('.filters input'),
+          length = el.length,
+          i;
 
-      self.productsView.render(items);
-    },
-    'сlear-search': function() {
-      self.productsView.render(self.products.arrayProducts);
-    },
-    'filter-item': function() {
-      var items = self.sort( self.products.arrayProducts, event.target.value );
-      self.productsView.render(items);
-    },
+          for(i = 0; i < length; i++) {
+              self.filter.decorate(el[i].getAttribute('name'), el[i].value);
+          }
+          self.productsView.render( self.filter.getFiltered() );
+
+    }
   };
 };
 window.app.prototype.clickHandler = function() {

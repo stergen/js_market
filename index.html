@@ -13,14 +13,25 @@
         <div class="header-shop-cart" data-event="open-cart-popup">
             In Cart
             <span class="cart-count">0</span> 
-            <!-- (<span class="cart-price">0</span>) -->
-        </div>
-        <div class="search">
-            <input class="input-search" type="text" id="search" placeholder="Search...">
-            <button class="btn-search" data-event="search">search</button>
-            <button class="btn-crear" data-event="clear-search">clear</button>
         </div>
     </header>
+    <div class="left-panel">
+        <div class="left-pannel__content">
+            <div class="filters">
+                <div class="filters__item">
+                    <input class="input-search" type="text" name="search" value="apple" placeholder="Search...">
+                    <button class="btn-search" data-event="search">search</button>
+                </div>
+                <div class="filters__item">
+                    <div class="filters__title">Price:</div>
+                    <input class="input-price" type="number" min="0" name="minPrice" placeholder="от">
+                    <input class="input-price" type="number" min="0" name="maxPrice" placeholder="до">
+                </div>
+            </div>
+            <button class="btn-search" data-event="filtered">search</button>
+            <button class="btn-search" data-event="filtered-clear">clear</button>
+        </div>
+    </div>
     <div class="content">
     <!-- TODO: cang into selectbox and add filter block -->
         <input type="radio" name="gender" class="filter-item" value="all"> Все |

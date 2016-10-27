@@ -46,9 +46,6 @@ header {
 	top: 3px;
 	right: 0;
 }
-.search {
-	line-height: 50px;
-}
 .input-search {
 	background: transparent;
 }
@@ -65,7 +62,8 @@ button:hover,
 button:focus {
 	border-color: #000;
 }
-input[type="text"] {
+input[type="text"],
+input[type="number"] {
 	padding: 5px 10px;
 	border-width: 0;
 	outline: none;
@@ -78,9 +76,12 @@ input[type="text"]:focus {
 }
 
 
-
+.left-panel,
 .content {
 	margin-top: 80px;
+}
+.content {
+	padding-left: 300px;
 }
 
 .product-list:after {
@@ -89,8 +90,23 @@ input[type="text"]:focus {
     clear: both;
 }
 
+/*left panell */
 
-
+.left-panel {
+	position: fixed;
+	width: 300px;
+	bottom: 0;
+	left: 0;
+	top: 0;
+	padding: 20px 15px;
+}
+.filters__item { margin: 20px 0; }
+.filters__title {
+	font-size: 1.2em;
+	margin-bottom: 5px;
+}
+.input-price { width: 45%; }
+.input-price:last-child { float: right; }
 
 
 .product-item {
