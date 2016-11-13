@@ -58,7 +58,7 @@
 
     objectProducts.innerHTML = '';
 
-    for (var count = items.length - 1; count > 0; count--) {
+    for (var count = items.length - 1; count >= 0; count--) {
       fragProductList.appendChild( this.renderProduct(items[count]) );
     }
 
@@ -200,9 +200,10 @@
   };
 
   // ================ SORT ================
+  // TODO: new create constructor?
   var sort = function(items, type) {
     var sortFunction,
-        sortable = [];
+        sortable = items;
 
     switch (type) {
       case 'priceLowestFirst':
@@ -213,14 +214,6 @@
         break;
       default:
         sortFunction = function () { return 0 };
-    }
-
-    if ( Array.isArray(items) ) {
-      sortable = items;
-    } else  {
-      for (var itemName in items) {
-        sortable.push([itemName, items[itemName]]);
-      }
     }
 
     sortable.sort(function(a, b) {
@@ -237,49 +230,31 @@
     if ( value === "" || value === undefined ) return;
     this.decoratorsList.push([decorator, value]);
   }
-  Filter.prototype.getFiltered = function() {
-    var arr = this.baseArray,
-        length = this.decoratorsList.length,
-        i, name, value;
-    // TODO: first iterator without for(), need for init new arr
-    for (i = 0; i < length; i++) {
-      name = this.decoratorsList[i][0];
-      value = this.decoratorsList[i][1];
-      arr = Filter.decorators[name].getFiltered(arr, value);
-    }
-    return arr;
+  Filter.prototype.get = function() {
+    var filtered = this.baseArray.filter(function(item) {
+      return this.decoratorsList.every(function(decorator) {
+        return Filter.decorators[decorator[0]](item, decorator[1]);
+      });
+    }, this);
+    this.decoratorsList = [];
+    return filtered;
   };
   Filter.decorators = {};
-  Filter.decorators.maxPrice = {
-    getFiltered: function(arr, value) {
-      return arr.filter(function(obj){
-        var a = obj.price <= value;
-        return a;
-      });
-    },
+  Filter.decorators.maxPrice = function(obj, value) {
+      return obj.price <= value;
   };
-  Filter.decorators.minPrice = {
-    getFiltered: function(arr, value) {
-      return arr.filter(function(obj){
-        return obj.price >= value;
-      });
-    },
+  Filter.decorators.minPrice = function(obj, value){
+      return obj.price >= value;
   };  
-  Filter.decorators.search = {
-    getFiltered: function(arr, value) {
-      var lowerName, seek;
-      return arr.filter(function(obj) {
-        lowerName = obj.name.toLowerCase();
-        seek = value.toLowerCase();
-
-        if (lowerName.indexOf(seek) > -1) { 
-          return true; 
-        } else { 
-          return false; 
-        }
-      });
-      return arrNew;
-    },
+  Filter.decorators.search = function(obj, value) {
+      var lowerName = obj.name.toLowerCase(), 
+          seek = value.toLowerCase();
+      
+      if (lowerName.indexOf(seek) > -1) { 
+        return true; 
+      } else { 
+        return false; 
+      }
   }; 
 
   window.app = function() {
@@ -303,8 +278,11 @@
 // ================ APP ================
 window.app.prototype.init = function() {
   this.productsView.render(this.products.arrayProducts);
-  var productsWrapEl = document.querySelector("body");
-  productsWrapEl.addEventListener('click', this.clickHandler.bind(this), false);
+  var clickHandlerWraper  = document.querySelector("body"),
+      changSortSelect     = document.getElementById("sort");
+
+  clickHandlerWraper.addEventListener('click', this.clickHandler.bind(this), false);
+  changSortSelect.addEventListener('change', this.changeEvent, false);
 };
 window.app.prototype.routes = function(event) {
   var self = this;
@@ -344,11 +322,16 @@ window.app.prototype.routes = function(event) {
           length = el.length,
           i;
 
-          for(i = 0; i < length; i++) {
-              self.filter.decorate(el[i].getAttribute('name'), el[i].value);
-          }
-          self.productsView.render( self.filter.getFiltered() );
-
+      for(i = 0; i < length; i++) {
+          self.filter.decorate(el[i].getAttribute('name'), el[i].value);
+      }
+      self.productsView.render( self.filter.get() );
+    },
+    'search': function() {
+      debugger;
+      var el = document.getElementsByClassName('input-search');
+      self.filter.decorate(el[0].getAttribute('name'), el[0].value);
+      self.productsView.render( self.filter.get() );
     }
   };
 };
@@ -361,5 +344,8 @@ window.app.prototype.clickHandler = function() {
     eventFunction();
   }
 };
+window.app.prototype.changeEvent = function() {
+  console.log(event);
+}
 
 var application = new window.app();
