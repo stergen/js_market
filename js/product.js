@@ -130,7 +130,7 @@
     this.template = '<div class="header-popup">Cart' +
       '<div class="close-popup" data-event="close-popup"></div></div>' +
       '<div class="body-popup">%(content)</div>' +
-      '<div class="footer-popup">%(totalPrice)</div>';
+      '<div class="footer-popup">%(footer)</div>';
 
     this.item = '<div class="item-name">%(name)</div>'+
       '<div class="item-price">%(price)</div>'+
@@ -140,37 +140,38 @@
   };
   CartView.prototype.renderCartInHeader = function(data) {
     var countEl = document.querySelector(".cart-count"),
-    // totalPrice = document.querySelector(".cart-price"),
       count = data.getTotalCount(),
       sum = data.getTotalSum();
 
     countEl.innerText = count;
-    // totalPrice.innerText = sum;
   };
-  CartView.prototype.renderPopupWrap = function(content) {
-    var popupEL = document.createElement('div');
-    popupEL.innerHTML = this.template.replace("%(content)", content);
-    //popupEL.innerHTML = this.template.replace("%(totalPrice)", 50);
-    popupEL.classList.add('popup');
-    this.popupWrapEL.appendChild(popupEL);
+  // CartView.prototype.renderPopupWrap = function(content) {
+  //   var popupEL = document.createElement('div');
+  //   popupEL.classList.add('popup');
+    
 
-    document.querySelector('body').appendChild(this.popupWrapEL);
-  };
-  CartView.prototype.renderPopupContent = function(data) {
-    var content = '',
-      productBlock,
-      item = '';
+  //   popupEL.innerHTML = this.template.replace("%(content)", content);
+  //   this.popupWrapEL.appendChild(popupEL);
 
-    for(item in data.items) {
+  //   document.querySelector('body').appendChild(this.popupWrapEL);
+  // };
+  CartView.prototype.renderPopupContent = function(CartModel) {
+    var productBlock,
+        template = '',
+        content = '',
+        footer = '',
+        item = '';
+
+    for(item in CartModel.items) {
       productBlock = this.item.replace(/%\((.+?)\)/g, function(expr, paramName) {
-        if(paramName in data.DB[item]) {
-          return data.DB[item][paramName];
+        if(paramName in CartModel.DB[item]) {
+          return CartModel.DB[item][paramName];
         }
         if(paramName === "count") {
-          return data.items[item];
+          return CartModel.items[item];
         }
         if(paramName === "total") {
-          return data.items[item] * data.DB[item]["price"];
+          return CartModel.items[item] * CartModel.DB[item]["price"];
         }
         return expr;
       });
@@ -178,21 +179,34 @@
     }
 
     if (content === '') {
-      return '<center>Cart is empty</center>';
+      content = '<center>Cart is empty</center>';
     }
 
-    return content;
-  };
-  CartView.prototype.renderPopup = function(data) {
-    var content;
-    content = this.renderPopupContent(data);
+    footer =  'Total Count: ' + CartModel.getTotalCount() + '  ' +
+              'Total Sum: ' + CartModel.getTotalSum(); 
 
-    if (!this.cartOpen) {
-      this.renderPopupWrap(content);
-      this.cartOpen = !this.cartOpen;
-    }
-    document.querySelector('.body-popup').innerHTML = content;
+    template = this.template.replace("%(content)", content);
+    template = template.replace("%(footer)", footer);
+
+    return template;
   };
+
+  CartView.prototype.renderPopup = function(CartModel) {
+    var content = this.renderPopupContent(CartModel),
+        popupEL = document.createElement('div');
+        popupEL.classList.add('popup');
+
+    if ( this.cartOpen ) {
+      document.getElementsByClassName('popup')[0].innerHTML = content;
+      return;
+    }
+
+    popupEL.innerHTML = content;
+    document.querySelector('body').appendChild(this.popupWrapEL);
+    this.popupWrapEL.appendChild(popupEL);
+    this.cartOpen = !this.cartOpen;
+  };
+
   CartView.prototype.destroy = function() {
     document.querySelector('body').removeChild(this.popupWrapEL);
     this.popupWrapEL.innerHTML = "";
@@ -206,11 +220,11 @@
         sortable = items;
 
     switch (type) {
-      case 'priceLowestFirst':
-        sortFunction = function(a, b) { return a[1]['price'] - b[1]['price']; };
-        break;
       case 'priceHighestFirst':
-        sortFunction = function(a, b) { return b[1]['price'] - a[1]['price']; };
+        sortFunction = function(a, b) { return a['price'] - b['price']; };
+        break;
+      case 'priceLowestFirst':
+        sortFunction = function(a, b) { return b['price'] - a['price']; };
         break;
       default:
         sortFunction = function () { return 0 };
@@ -224,37 +238,45 @@
 
   var Filter = function(array) {
     this.baseArray = array;
+    this.filtered = array;
     this.decoratorsList = [];
-  }
+  };
   Filter.prototype.decorate = function(decorator, value) {
     if ( value === "" || value === undefined ) return;
     this.decoratorsList.push([decorator, value]);
-  }
+  };
   Filter.prototype.get = function() {
-    var filtered = this.baseArray.filter(function(item) {
+    // save filtered chang for sorter 
+    this.filtered = this.baseArray.filter(function(item) {
       return this.decoratorsList.every(function(decorator) {
         return Filter.decorators[decorator[0]](item, decorator[1]);
       });
     }, this);
+    // clear decorators for new event
     this.decoratorsList = [];
-    return filtered;
+    return this.filtered;
+  };
+  Filter.prototype.default = function() {
+    this.filtered = this.baseArray;
+    this.decoratorsList = [];
+    return this.filtered;
   };
   Filter.decorators = {};
   Filter.decorators.maxPrice = function(obj, value) {
-      return obj.price <= value;
+    return obj.price <= value;
   };
   Filter.decorators.minPrice = function(obj, value){
-      return obj.price >= value;
+    return obj.price >= value;
   };  
   Filter.decorators.search = function(obj, value) {
-      var lowerName = obj.name.toLowerCase(), 
-          seek = value.toLowerCase();
-      
-      if (lowerName.indexOf(seek) > -1) { 
-        return true; 
-      } else { 
-        return false; 
-      }
+    var lowerName = obj.name.toLowerCase(), 
+        seek = value.toLowerCase();
+    
+    if (lowerName.indexOf(seek) > -1) { 
+      return true; 
+    } else { 
+      return false; 
+    }
   }; 
 
   window.app = function() {
@@ -282,7 +304,7 @@ window.app.prototype.init = function() {
       changSortSelect     = document.getElementById("sort");
 
   clickHandlerWraper.addEventListener('click', this.clickHandler.bind(this), false);
-  changSortSelect.addEventListener('change', this.changeEvent, false);
+  changSortSelect.addEventListener('change', this.changeEvent.bind(this), false);
 };
 window.app.prototype.routes = function(event) {
   var self = this;
@@ -314,8 +336,8 @@ window.app.prototype.routes = function(event) {
       self.cart.unsubscribe(self.renderPopup);
       self.cartView.destroy();
     },
-    'del': function() {
-      self.cart.delete(event.target.getAttribute('data-id'));
+    'remove-product': function() {
+      self.cart.delete( event.target.getAttribute('data-id') );
     },
     'filtered': function() {
       var el = document.querySelectorAll('.filters input'),
@@ -327,8 +349,11 @@ window.app.prototype.routes = function(event) {
       }
       self.productsView.render( self.filter.get() );
     },
+    'filtered-clear': function() {
+      self.productsView.render( self.filter.default() );
+      document.getElementById("sort").value = 'default';
+    },
     'search': function() {
-      debugger;
       var el = document.getElementsByClassName('input-search');
       self.filter.decorate(el[0].getAttribute('name'), el[0].value);
       self.productsView.render( self.filter.get() );
@@ -345,7 +370,8 @@ window.app.prototype.clickHandler = function() {
   }
 };
 window.app.prototype.changeEvent = function() {
-  console.log(event);
+  var sorted = this.sort(this.filter.filtered, event.target.value);
+  this.productsView.render(sorted);
 }
 
 var application = new window.app();

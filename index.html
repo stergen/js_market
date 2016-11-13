@@ -17,28 +17,28 @@
   </header>
   <div class="left-panel">
     <div class="left-pannel__content">
-    <form>
-      <div class="filters">
-        <div class="filters__item">
-          <input class="input-search" type="text" name="search" placeholder="Search...">
-          <button class="btn-search" data-event="search">search</button>
+      <form onsubmit="return false;">
+        <div class="filters">
+          <div class="filters__item">
+            <input class="input-search" type="text" name="search" placeholder="Search...">
+            <button class="btn-search" data-event="search">search</button>
+          </div>
+          <div class="filters__item">
+            <div class="filters__title">Price:</div>
+            <input class="input-price" type="number" min="0" name="minPrice" placeholder="от">
+            <input class="input-price" type="number" min="0" name="maxPrice" placeholder="до">
+          </div>
         </div>
-        <div class="filters__item">
-          <div class="filters__title">Price:</div>
-          <input class="input-price" type="number" min="0" name="minPrice" placeholder="от">
-          <input class="input-price" type="number" min="0" name="maxPrice" placeholder="до">
-        </div>
-      </div>
-      <button class="btn-search" data-event="filtered">search</button>
-      <button class="btn-search" data-event="filtered-clear">clear</button>
-      <input type="reset" value="Очистить">
-       </form>
+        <button class="btn-search" data-event="filtered">search</button>
+        <button class="btn-search" data-event="filtered-clear" type="reset">clear</button>
+        <input type="button" value="Open Window" onclick="openWin()">
+      </form>
     </div>
   </div>
   <div class="content">
   <!-- TODO: cang into selectbox and add filter block -->
     <select name="sort" id="sort">
-      <option value="all">Все</option>
+      <option value="default">---</option>
       <option value="priceHighestFirst">Від дорощого</option>
       <option value="priceLowestFirst">Від дешевшого</option>
     </select>
@@ -51,5 +51,11 @@
   </footer>
   <script src="js/productJSON.js"></script>
   <script src="js/product.js"></script>
+<script>
+function openWin() {
+  console.log('hhj');
+    window.open("/product.html","_blank","toolbar=yes, location=yes, directories=no, status=no, menubar=yes, scrollbars=yes, resizable=no, copyhistory=yes, width=400, height=400");
+}
+</script>
 </body>
 </html>
