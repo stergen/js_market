@@ -28,7 +28,7 @@
 
   var ProductsView = function() {
     this.template = '<div class="product-img-wrap"><img src="./img/%(image)"/></div>' +
-      '<div class="product-name">%(name)</div>' +
+      '<div class="product-name" data-event="viewProduct">%(name)</div>' +
       '<button class="minus" data-event="minus">-</button>' +
       '<input type="number" class="itemCount" min="1" value="1" disabled>' +
       '<button class="plus" data-event="plus">+</button>' +
@@ -145,16 +145,6 @@
 
     countEl.innerText = count;
   };
-  // CartView.prototype.renderPopupWrap = function(content) {
-  //   var popupEL = document.createElement('div');
-  //   popupEL.classList.add('popup');
-    
-
-  //   popupEL.innerHTML = this.template.replace("%(content)", content);
-  //   this.popupWrapEL.appendChild(popupEL);
-
-  //   document.querySelector('body').appendChild(this.popupWrapEL);
-  // };
   CartView.prototype.renderPopupContent = function(CartModel) {
     var productBlock,
         template = '',
@@ -327,6 +317,10 @@ window.app.prototype.routes = function(event) {
     },
     'add-to-cart': function() {
       self.cart.add(idItem, countItem);
+    },
+    'viewProduct': function() {
+      var url = window.location.href.replace(/[^\/]+$/, 'product.html?id='+idItem),
+      window.open(url, "_self");
     },
     'open-cart-popup': function() {
       self.cart.subscribe(self.renderPopup);
