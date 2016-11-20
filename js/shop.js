@@ -2,30 +2,6 @@
 
 (function(){
 
-  // ================ PRODUCTS ================
-  var ProductsModel = function(dataBase) {
-    this.objectProducts = {};
-    this.arrayProducts = [];
-    this.init(dataBase)
-  };
-  ProductsModel.prototype.init = function(product) {
-    /*
-    * convert to obj where id it`s key
-    * it`s need for fast get element
-    * */
-    this.objectProducts = product.reduce(function(db, currentItem) {
-      db[currentItem.id] = currentItem;
-      return db;
-    }, {});
-    /*
-    * convert to array because we need
-    * sorting and search products
-    * */
-    for (var itemName in this.objectProducts) {
-      this.arrayProducts.push(this.objectProducts[itemName]);
-    }
-  };
-
   var ProductsView = function() {
     this.template = '<div class="product-img-wrap"><img src="./img/%(image)"/></div>' +
       '<div class="product-name" data-event="viewProduct">%(name)</div>' +
@@ -65,143 +41,143 @@
     objectProducts.appendChild( fragProductList );
   };
 
-  // ================ CART ================
-  var CartModel = function(dataBase) {
-    this.DB = dataBase;
-    this.items = {};
-    this.subscribers = [];
-  };
-  CartModel.prototype.add = function(id, count) {
-    if( !this.items[ id ] ) {
-      this.items[ id ] = 0;
-    }
-    this.items[ id ] += count;
-    this.publish(this);
-  };
-  CartModel.prototype.delete = function(id, count) {
-    delete this.items[id];
-    this.publish(this);
-  };
-  CartModel.prototype.getTotalSum = function() {
-    var sum = 0;
-    for (var id in this.items) {
-      sum += this.DB[id].price * this.items[id];
-    }
+  // // ================ CART ================
+  // var CartModel = function(dataBase) {
+  //   this.DB = dataBase;
+  //   this.items = {};
+  //   this.subscribers = [];
+  // };
+  // CartModel.prototype.add = function(id, count) {
+  //   if( !this.items[ id ] ) {
+  //     this.items[ id ] = 0;
+  //   }
+  //   this.items[ id ] += count;
+  //   this.publish(this);
+  // };
+  // CartModel.prototype.delete = function(id, count) {
+  //   delete this.items[id];
+  //   this.publish(this);
+  // };
+  // CartModel.prototype.getTotalSum = function() {
+  //   var sum = 0;
+  //   for (var id in this.items) {
+  //     sum += this.DB[id].price * this.items[id];
+  //   }
 
-    return sum;
-  };
-  CartModel.prototype.getTotalCount = function() {
-    var count = 0;
-    for (var id in this.items) {
-      count += this.items[id];
-    }
-    return count;
-  };
-  // --- Observer ---
-  CartModel.prototype.subscribe = function(fn) {
+  //   return sum;
+  // };
+  // CartModel.prototype.getTotalCount = function() {
+  //   var count = 0;
+  //   for (var id in this.items) {
+  //     count += this.items[id];
+  //   }
+  //   return count;
+  // };
+  // // --- Observer ---
+  // CartModel.prototype.subscribe = function(fn) {
 
-    this.subscribers.push(fn);
-  };
-  CartModel.prototype.unsubscribe = function(fn) {
-    var i = 0,
-      len = this.subscribers.length;
+  //   this.subscribers.push(fn);
+  // };
+  // CartModel.prototype.unsubscribe = function(fn) {
+  //   var i = 0,
+  //     len = this.subscribers.length;
 
-    for (; i < len; i++) {
-      if (this.subscribers[i] === fn) {
-        this.subscribers.splice(i, 1);
-        return;
-      }
-    }
-  };
-  CartModel.prototype.publish = function(data) {
-    var i = 0,
-      len = this.subscribers.length;
+  //   for (; i < len; i++) {
+  //     if (this.subscribers[i] === fn) {
+  //       this.subscribers.splice(i, 1);
+  //       return;
+  //     }
+  //   }
+  // };
+  // CartModel.prototype.publish = function(data) {
+  //   var i = 0,
+  //     len = this.subscribers.length;
 
-    for (; i < len; i++) {
-      this.subscribers[i](data);
-    }
-  };
+  //   for (; i < len; i++) {
+  //     this.subscribers[i](data);
+  //   }
+  // };
 
-  var CartView = function() {
-    this.popupWrapEL = document.createElement('div');
-    this.popupWrapEL.classList.add('popup-wrap');
-    this.cartOpen = false;
+  // var CartView = function() {
+  //   this.popupWrapEL = document.createElement('div');
+  //   this.popupWrapEL.classList.add('popup-wrap');
+  //   this.cartOpen = false;
 
-    this.template = '<div class="header-popup">Cart' +
-      '<div class="close-popup" data-event="close-popup"></div></div>' +
-      '<div class="body-popup">%(content)</div>' +
-      '<div class="footer-popup">%(footer)</div>';
+  //   this.template = '<div class="header-popup">Cart' +
+  //     '<div class="close-popup" data-event="close-popup"></div></div>' +
+  //     '<div class="body-popup">%(content)</div>' +
+  //     '<div class="footer-popup">%(footer)</div>';
 
-    this.item = '<div class="item-name">%(name)</div>'+
-      '<div class="item-price">%(price)</div>'+
-      '<div class="item-count">%(count)</div>'+
-      '<div class="item-total-price">%(total)</div>'+
-      '<div class="item-delate"><span class="del" data-id="%(id)" data-event="remove-product">x</span></div>';
-  };
-  CartView.prototype.renderCartInHeader = function(data) {
-    var countEl = document.querySelector(".cart-count"),
-      count = data.getTotalCount(),
-      sum = data.getTotalSum();
+  //   this.item = '<div class="item-name">%(name)</div>'+
+  //     '<div class="item-price">%(price)</div>'+
+  //     '<div class="item-count">%(count)</div>'+
+  //     '<div class="item-total-price">%(total)</div>'+
+  //     '<div class="item-delate"><span class="del" data-id="%(id)" data-event="remove-product">x</span></div>';
+  // };
+  // CartView.prototype.renderCartInHeader = function(data) {
+  //   var countEl = document.querySelector(".cart-count"),
+  //     count = data.getTotalCount(),
+  //     sum = data.getTotalSum();
 
-    countEl.innerText = count;
-  };
-  CartView.prototype.renderPopupContent = function(CartModel) {
-    var productBlock,
-        template = '',
-        content = '',
-        footer = '',
-        item = '';
+  //   countEl.innerText = count;
+  // };
+  // CartView.prototype.renderPopupContent = function(CartModel) {
+  //   var productBlock,
+  //       template = '',
+  //       content = '',
+  //       footer = '',
+  //       item = '';
 
-    for(item in CartModel.items) {
-      productBlock = this.item.replace(/%\((.+?)\)/g, function(expr, paramName) {
-        if(paramName in CartModel.DB[item]) {
-          return CartModel.DB[item][paramName];
-        }
-        if(paramName === "count") {
-          return CartModel.items[item];
-        }
-        if(paramName === "total") {
-          return CartModel.items[item] * CartModel.DB[item]["price"];
-        }
-        return expr;
-      });
-      content += '<div class="item-popup">' + productBlock + '</div>';
-    }
+  //   for(item in CartModel.items) {
+  //     productBlock = this.item.replace(/%\((.+?)\)/g, function(expr, paramName) {
+  //       if(paramName in CartModel.DB[item]) {
+  //         return CartModel.DB[item][paramName];
+  //       }
+  //       if(paramName === "count") {
+  //         return CartModel.items[item];
+  //       }
+  //       if(paramName === "total") {
+  //         return CartModel.items[item] * CartModel.DB[item]["price"];
+  //       }
+  //       return expr;
+  //     });
+  //     content += '<div class="item-popup">' + productBlock + '</div>';
+  //   }
 
-    if (content === '') {
-      content = '<center>Cart is empty</center>';
-    }
+  //   if (content === '') {
+  //     content = '<center>Cart is empty</center>';
+  //   }
 
-    footer =  'Total Count: ' + CartModel.getTotalCount() + '  ' +
-              'Total Sum: ' + CartModel.getTotalSum(); 
+  //   footer =  'Total Count: ' + CartModel.getTotalCount() + '  ' +
+  //             'Total Sum: ' + CartModel.getTotalSum(); 
 
-    template = this.template.replace("%(content)", content);
-    template = template.replace("%(footer)", footer);
+  //   template = this.template.replace("%(content)", content);
+  //   template = template.replace("%(footer)", footer);
 
-    return template;
-  };
+  //   return template;
+  // };
 
-  CartView.prototype.renderPopup = function(CartModel) {
-    var content = this.renderPopupContent(CartModel),
-        popupEL = document.createElement('div');
-        popupEL.classList.add('popup');
+  // CartView.prototype.renderPopup = function(CartModel) {
+  //   var content = this.renderPopupContent(CartModel),
+  //       popupEL = document.createElement('div');
+  //       popupEL.classList.add('popup');
 
-    if ( this.cartOpen ) {
-      document.getElementsByClassName('popup')[0].innerHTML = content;
-      return;
-    }
+  //   if ( this.cartOpen ) {
+  //     document.getElementsByClassName('popup')[0].innerHTML = content;
+  //     return;
+  //   }
 
-    popupEL.innerHTML = content;
-    document.querySelector('body').appendChild(this.popupWrapEL);
-    this.popupWrapEL.appendChild(popupEL);
-    this.cartOpen = !this.cartOpen;
-  };
+  //   popupEL.innerHTML = content;
+  //   document.querySelector('body').appendChild(this.popupWrapEL);
+  //   this.popupWrapEL.appendChild(popupEL);
+  //   this.cartOpen = !this.cartOpen;
+  // };
 
-  CartView.prototype.destroy = function() {
-    document.querySelector('body').removeChild(this.popupWrapEL);
-    this.popupWrapEL.innerHTML = "";
-    this.cartOpen = !this.cartOpen;
-  };
+  // CartView.prototype.destroy = function() {
+  //   document.querySelector('body').removeChild(this.popupWrapEL);
+  //   this.popupWrapEL.innerHTML = "";
+  //   this.cartOpen = !this.cartOpen;
+  // };
 
   // ================ SORT ================
   // TODO: new create constructor?
@@ -269,20 +245,16 @@
     }
   }; 
 
-  window.app = function() {
-    this.products = new ProductsModel(window.products);
-    this.cart = new CartModel(this.products.objectProducts);
-    this.cartView = new CartView();
-    this.productsView = new ProductsView(this.products.objectProducts);
-    this.filter = new Filter(this.products.arrayProducts);
+  var self = window.app.prototype;
+  // self.cart = new CartModel(self.products.objectProducts);
+  // self.cartView = new CartView();
+  self.productsView = new ProductsView(self.products.objectProducts);
+  self.filter = new Filter(self.products.arrayProducts);
 
-    this.sort = sort;
+  self.sort = sort;
 
-    this.cart.subscribe(this.cartView.renderCartInHeader);
-    this.renderPopup = this.cartView.renderPopup.bind(this.cartView);
-
-    this.init();
-  };
+  // self.cart.subscribe(self.cartView.renderCartInHeader);
+  // self.renderPopup = self.cartView.renderPopup.bind(self.cartView);
 })();
 
 
@@ -319,7 +291,7 @@ window.app.prototype.routes = function(event) {
       self.cart.add(idItem, countItem);
     },
     'viewProduct': function() {
-      var url = window.location.href.replace(/[^\/]+$/, 'product.html?id='+idItem),
+      var url = window.location.href.replace(/[^\/]+$/, 'product.html?id='+idItem);
       window.open(url, "_self");
     },
     'open-cart-popup': function() {

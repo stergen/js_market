@@ -83,7 +83,9 @@ input[type="text"]:focus {
 .content {
   padding-left: 300px;
 }
-
+.content.left-menu--disable {
+  padding-left: 0;
+}
 .product-list:after {
     content: '';
     display: table;

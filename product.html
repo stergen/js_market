@@ -16,16 +16,20 @@
     </div>
   </header>
   
-  <pre id="content">
+  <div id="content" class="content left-menu--disable">
   	
-  </pre>
+  </div>
 
   <footer>
     footer
   </footer>
   <script src="js/productJSON.js"></script>
+  <script src="js/app.js"></script>
+
+
+
+
   	<script>
-  	debugger;
 		var id;
 		window.location.href.replace(/id=\d+/g, function(expr){
 			id = expr.replace('id=', '');
@@ -35,6 +39,8 @@
 			return el.id == id;
 		});
 			base.innerHTML = product.name;
+
+      var application = new window.app();
 	</script>
 </body>
 </html>
