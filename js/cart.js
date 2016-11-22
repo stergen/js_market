@@ -116,7 +116,6 @@
 
     return template;
   };
-
   CartView.prototype.renderPopup = function(CartModel) {
     var content = this.renderPopupContent(CartModel),
         popupEL = document.createElement('div');
@@ -132,14 +131,15 @@
     this.popupWrapEL.appendChild(popupEL);
     this.cartOpen = !this.cartOpen;
   };
-
   CartView.prototype.destroy = function() {
     document.querySelector('body').removeChild(this.popupWrapEL);
     this.popupWrapEL.innerHTML = "";
     this.cartOpen = !this.cartOpen;
   };
-  window.app.prototype.cart = new CartModel( window.app.prototype.products.objectProducts );
-  window.app.prototype.cartView = new CartView();
-  window.app.prototype.cart.subscribe(window.app.prototype.cartView.renderCartInHeader);
-  window.app.prototype.renderPopup = window.app.prototype.cartView.renderPopup.bind(window.app.prototype.cartView);
+  
+  window.modules.add('cart', CartModel, window.app.prototype.products.objectProducts);
+  window.modules.add('cartView', CartView);
+
+  // window.app.prototype.cart.subscribe(window.app.prototype.cartView.renderCartInHeader);
+  // window.app.prototype.renderPopup = window.app.prototype.cartView.renderPopup.bind(window.app.prototype.cartView);
 })();
