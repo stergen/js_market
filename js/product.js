@@ -25,16 +25,39 @@
 
     return itemElement;
   };
-  ProductsView.prototype.render = function(items) {
+  ProductView.prototype.render = function(item) {
     var fragProductList = document.createDocumentFragment(),
-        objectProducts = document.querySelector(".product-list");
+        objectProduct   = document.querySelector("#content");
 
-    objectProducts.innerHTML = '';
+    objectProduct.innerHTML = '';
 
-    for (var count = items.length - 1; count >= 0; count--) {
-      fragProductList.appendChild( this.renderProduct(items[count]) );
-    }
+    fragProductList.appendChild( this.renderProduct(item) );
 
-    objectProducts.appendChild( fragProductList );
+    objectProduct.appendChild( fragProductList );
   };
+
+  window.modules.add('productView', ProductView);
 })();
+
+window.app.prototype.init = function() {
+  this.cart.subscribe(this.cartView.renderCartInHeader);
+  this.renderPopup = this.cartView.renderPopup.bind(this.cartView);
+
+
+
+  var search = window.location.search.substr(1),
+  keys = {};
+
+  search.split('&').forEach(function(item) {
+    item = item.split('=');
+    keys[item[0]] = item[1];
+  });
+
+
+
+  this.productView.render(this.products.objectProducts[ keys['id'] ]);
+
+  var clickHandlerWraper  = document.querySelector("body");
+
+  clickHandlerWraper.addEventListener('click', this.clickHandler.bind(this), false);
+}; 
