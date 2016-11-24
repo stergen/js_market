@@ -1,4 +1,5 @@
 'use strict';
+
 window.modules = (function() {
   var modules = {};
   return {
@@ -173,7 +174,6 @@ window.modules = (function() {
   window.modules.add('products', ProductsModel);
   window.modules.add('cart', CartModel);
   window.modules.add('cartView', CartView);
-
 })();
 
 window.app.prototype.init = function() {
@@ -248,8 +248,4 @@ window.app.prototype.clickHandler = function() {
   if(eventFunction != undefined) {
     eventFunction();
   }
-};
-window.app.prototype.changeEvent = function() {
-  var sorted = this.sort(this.filter.filtered, event.target.value);
-  this.productsView.render(sorted);
 };

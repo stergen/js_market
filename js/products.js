@@ -109,12 +109,19 @@
   window.modules.add('sort', sort);  
 })();
 
+window.app.prototype.changeEvent = function() {
+  var sorted = this.sort(this.filter.filtered, event.target.value);
+  this.productsView.render(sorted);
+};
+
 window.app.prototype.init = function() {
   this.cart.subscribe(this.cartView.renderCartInHeader);
   this.renderPopup = this.cartView.renderPopup.bind(this.cartView);
   this.productsView.render(this.products.arrayProducts);
+
   var clickHandlerWraper  = document.querySelector("body"),
-  changSortSelect         = document.getElementById("sort");
+      changSortSelect     = document.getElementById("sort");
+
   changSortSelect.addEventListener('change', this.changeEvent.bind(this), false);
   clickHandlerWraper.addEventListener('click', this.clickHandler.bind(this), false);
 }; 
