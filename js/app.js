@@ -23,8 +23,11 @@ window.modules = (function() {
     * convert to obj where id it`s key
     * it`s need for fast get element
     * */
+    var index = 0;
     this.objectProducts = product.reduce(function(db, currentItem) {
-      db[currentItem.id] = currentItem;
+      db[index] = currentItem;
+      db[index].id = index;
+      index++;
       return db;
     }, {});
     /*
