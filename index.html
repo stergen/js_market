@@ -31,7 +31,6 @@
         </div>
         <button class="btn-search" data-event="filtered">search</button>
         <button class="btn-search" data-event="filtered-clear" type="reset">clear</button>
-        <input type="button" value="Open Window" onclick="openWin()">
       </form>
     </div>
   </div>
@@ -50,6 +49,7 @@
     footer
   </footer>
   <script>
+
     window.app = function(products) {
       this.modules = window.modules.get();
       this.products = new this.modules["products"](products);
@@ -57,7 +57,7 @@
       this.cartView = new this.modules['cartView']();
       this.productsView = new this.modules['productsView'](this.products.objectProducts);
       this.filter = new this.modules['filter'](this.products.arrayProducts);
-      this.sort = window.modules["sort"];
+      this.sort = this.modules["sort"];
       
       this.init();      
     }   

@@ -6,7 +6,7 @@
       '<div class="product-name" data-event="viewProduct">%(name)</div>' +
       '<button class="minus" data-event="minus">-</button>' +
       '<input type="number" class="itemCount" min="1" value="1" disabled>' +
-      '<button class="plus" data-event="plus">+</button>' +
+      '<button class="plus" data-type="product-child" data-event="plus">+</button>' +
       '<div class="product-price">%(price)</div>' +
       '<button class="add-to-cart" data-event="add-to-cart">add to cart</button>';
   };
@@ -22,6 +22,7 @@
     var itemElement = document.createElement('div');
 
     itemElement.setAttribute('data-id', item['id']);
+    itemElement.setAttribute('type', 'product');
     itemElement.classList.add('product-item');
     itemElement.innerHTML = productBlock;
 

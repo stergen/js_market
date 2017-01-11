@@ -183,28 +183,43 @@ window.app.prototype.init = function() {
   this.renderPopup = this.cartView.renderPopup.bind(this.cartView);  
 };
 window.app.prototype.routes = function(event) {
-  var self = this;
-  if (event.target.parentNode.classList.contains('product-item')) {
-    var countItemEl = event.target.parentNode.querySelector(".itemCount"),
-      countItem = event.target.parentNode.querySelector(".itemCount").value,
-      idItem  = event.target.parentNode.getAttribute('data-id');
+  var self = this,
+      parent, 
+      countItemEl, 
+      countItem, 
+      idItem;
+
+  var productValue = function() {
+    parent = event.target.parentNode;
+    while(parent.getAttribute('type') != 'product' ) {
+        parent = parent.parentNode;
+    }
+    countItemEl = parent.querySelector(".itemCount"),
+    countItem = parent.querySelector(".itemCount").value,
+    idItem  = parent.getAttribute('data-id');
     countItem = parseInt( countItem );
     idItem = parseInt( idItem );
   }
 
+
+
   return {
     'plus': function() {
+      productValue();
       countItemEl.value = countItem + 1;
     },
     'minus': function() {
+      productValue();
       if ( countItem != 1 ) {
         countItemEl.value = countItem - 1;
       }
     },
     'add-to-cart': function() {
+      productValue();
       self.cart.add(idItem, countItem);
     },
     'viewProduct': function() {
+      productValue();
       var url = window.location.href.replace(/[^\/]+$/, 'product.html?id='+idItem);
       window.open(url, "_self");
     },

@@ -286,3 +286,111 @@ input[type="text"]:focus {
 .item-delate .del {
   cursor: pointer;
 }
+
+/*slide*/
+.slider {
+  box-shadow: 0 10px 25px 1px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+.product-images {
+  position: relative;
+  padding-top: 60%;
+}
+.product-images .product-image {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  top: 0;
+  margin: auto;
+  max-width: 100%;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.product-image.active { opacity: 1; }
+.product-images-btn--left:after,
+.product-images-btn--right:after {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  cursor: pointer;
+  content: '';
+  display: inline-block;
+  height: 20px;
+  width: 20px;
+  border: 1px solid transparent;
+}
+.product-images-btn--left:after,
+.product-images-btn--right:after {
+  -webkit-transform: rotate(45deg) translate(-50%, -50%);
+          transform: rotate(45deg) translate(-50%, -50%);  
+  -webkit-transition: border 0.5s;
+          transition: border 0.5s;
+}
+.product-images-btn--left:after {
+  left: -25px;
+  border-bottom-color: rgba(0,0,0,0.5);
+  border-left-color: rgba(0,0,0,0.5);  
+}
+.product-images-btn--right:after {
+  right: -25px;
+  border-top-color: rgba(0,0,0,0.5);
+  border-right-color: rgba(0,0,0,0.5);  
+}
+.product-images-btn--left:hover:after {
+  border-bottom-color: #000;
+  border-left-color: #000;
+}
+.product-images-btn--right:hover:after {
+  border-top-color: #000;
+  border-right-color: #000;  
+}
+
+
+
+.single-product {
+  width: 95%;
+  max-width: 500px;
+  margin: 100px auto;
+}
+.single-info {
+  background: #fafafa;
+}
+.single-product-name {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 400;
+  padding: 15px 10px;
+  color: #787878;
+}
+.characteristic {
+  border-top: 3px solid #fff;
+  max-height: 170px;
+  overflow-y: scroll;
+}
+.char-row:after {
+  content: '';
+  display: table;
+  clear: both;
+}
+.char-row:nth-child(odd) {
+  background: #eee;
+}
+.char-col {
+  float: left;
+  width: 50%;
+  padding: 10px;
+}
+.char-col:last-child {
+  border-left: 1px solid #eee;
+}
+.char-row:nth-child(odd) .char-col:last-child {
+  border-color: #fafafa;
+}
+.single-product-buy {
+  background: #fff;
+}
+
+
+
+
