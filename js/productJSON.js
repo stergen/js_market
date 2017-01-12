@@ -24,6 +24,7 @@ window.products =
             "name": "Apple MacBook 12' Rose Gold (MMGL2UA/A)",
             "price": 44199,
             "image": '8.jpg',
+            "images": [],
             "characteristic": {
                 "producer": "Apple",
                 "diagonal": 12,
@@ -36,6 +37,7 @@ window.products =
             "name": "Apple MacBook Pro Retina 13' (Z0QP002NP)",
             "price": 77199,
             "image": '9.jpg',
+            "images": [],
             "characteristic": {
                 "producer": "Apple",
                 "diagonal": 13.3,
@@ -48,6 +50,7 @@ window.products =
             "name": "Lenovo ThinkPad E560 (20EVS03M00)",
             "price": 17595,
             "image": '2.jpg',
+            "images": [],
             "characteristic": {
                 "producer": "Lenovo",
                 "diagonal": 15.6,
@@ -60,6 +63,7 @@ window.products =
             "name": "Asus VivoBook Flip TP501UA (TP501UA-DN067T) Dark Gray",
             "price": 29700,
             "image": '3.jpg',
+            "images": [],
             "characteristic": {
                 "producer": "Asus",
                 "diagonal": 15.6,
@@ -72,6 +76,7 @@ window.products =
             "name": "Lenovo Yoga 900-13 (80UE007NUA) Orange",
             "price": 43555,
             "image": '4.jpg',
+            "images": [],
             "characteristic": {
                 "producer": "Lenovo",
                 "diagonal": 13.3,
@@ -84,6 +89,7 @@ window.products =
             "name": "HP 255 G4 (N0Y69ES)",
             "price": 5299,
             "image": '5.jpg',
+            "images": [],
             "characteristic": {
                 "producer": "HP",
                 "diagonal": 15.6,
@@ -96,6 +102,7 @@ window.products =
             "name": "Asus X555SJ (X555SJ-XO001D/R556SJ-XO061D) Black",
             "price": 7699,
             "image": '6.jpg',
+            "images": [],
             "characteristic": {
                 "producer": "Asus",
                 "diagonal": 15.6,
@@ -108,6 +115,7 @@ window.products =
             "name": "Acer Aspire E5-573G-3894 (NX.MVVEU.013) Black-White",
             "price": 13499,
             "image": '7.jpg',
+            "images": [],
             "characteristic": {
                 "producer": "Acer",
                 "diagonal": 15.5,

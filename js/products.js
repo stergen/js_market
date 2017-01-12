@@ -11,7 +11,6 @@
       '<button class="add-to-cart" data-event="add-to-cart">add to cart</button>';
   };
   ProductsView.prototype.renderProduct = function(item) {
-
     var productBlock = this.template.replace(/%\((.+?)\)/g, function(expr, paramName) {
       if(paramName in item) {
         return item[paramName];
@@ -20,7 +19,6 @@
     });
 
     var itemElement = document.createElement('div');
-
     itemElement.setAttribute('data-id', item['id']);
     itemElement.setAttribute('type', 'product');
     itemElement.classList.add('product-item');
@@ -31,13 +29,11 @@
   ProductsView.prototype.render = function(items) {
     var fragProductList = document.createDocumentFragment(),
         objectProducts = document.querySelector(".product-list");
-
     objectProducts.innerHTML = '';
 
     for (var count = items.length - 1; count >= 0; count--) {
       fragProductList.appendChild( this.renderProduct(items[count]) );
     }
-
     objectProducts.appendChild( fragProductList );
   };
 

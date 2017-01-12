@@ -28,17 +28,26 @@
   };
   ProductView.prototype.renderProduct = function(item) {
     var getImages = function(array) {
-      var stringImages = '',
-          length = array.length,
-          i = 0;
-      for (; i < length; i++) {
+      var noImage = '<img class="product-image" src="./img/no-img.png">';
+      if(!Array.isArray(array)) {
+        return noImage
+      }
+
+      var length = array.length,
+          stringImages = '', i;
+      if(length == 0) {
+        return noImage;
+      }
+      for (i=0; i < length; i++) {
         stringImages += '<img class="product-image" src="./img/'+ array[i] +'">';
       }
       return stringImages;
     };
-    var getCharacters = function(obj) {
-      var character = obj,
-          characterName,
+    var getCharacters = function(character) {
+      if(!(character instanceof Object)) {
+        console.log('Error: we can`t took characters');
+      }
+      var characterName,
           stringCharacters = '<div class="characteristic">';
       for(characterName in character) {
         stringCharacters += '<div class="char-row">';
@@ -77,28 +86,24 @@
   ProductView.prototype.render = function(items) {
     var fragProductList = document.createDocumentFragment(),
         objectProduct   = document.querySelector("#content");
-
     objectProduct.innerHTML = '';
 
-
     var search = window.location.search.substr(1),
-      keys = {};
+        keys = {};
+    search.split('&').forEach(function(item) {
+      item = item.split('=');
+      keys[item[0]] = item[1];
+    });
 
-      search.split('&').forEach(function(item) {
-        item = item.split('=');
-        keys[item[0]] = item[1];
-      });
-
-
-    fragProductList.appendChild( this.renderProduct(items[ keys.id ]) );
-
-    objectProduct.appendChild( fragProductList );
+    fragProductList.appendChild( this.renderProduct(items[keys.id]) );
+    objectProduct.appendChild(fragProductList);
   };
 
+  // ================ SLIDER ================
   var ProductSlider = function() {
     this.slider = document.getElementById('slider');
-    this.leftArrow = document.getElementsByClassName('product-images-btn--left');
-    this.rightArrow = document.getElementsByClassName('product-images-btn--right');
+    this.leftArrow = document.getElementsByClassName('product-images-btn--left')[0];
+    this.rightArrow = document.getElementsByClassName('product-images-btn--right')[0];
 
     this.init();
   };
@@ -106,13 +111,16 @@
     var items = document.getElementsByClassName('product-image'),
         length = items.length;
 
-
-    items[0].classList.add("active");
+    items[0].classList.add('active');
     for (var i = 0; i < length; i++) {
       if (items[i].classList.contains('active') && i > 0) {
           items[i].classList.remove('active');
       }
       items[i].setAttribute('slider-item', i);
+    }
+    if(length <= 1) {
+      this.leftArrow.classList.add('hidden');
+      this.rightArrow.classList.add('hidden');
     }
 
     var clickHandlerWraper  = document.querySelector(".product-images-btn");
@@ -124,10 +132,9 @@
         index = parseInt( current.getAttribute('slider-item') );
 
     items[index].classList.remove('active');
-    
     if (event.target.classList.contains('product-images-btn--left')) {
       if (index === 0) {
-        items[items.length - 1].classList.add('active');
+        items[items.length-1].classList.add('active');
       } else {
         items[index-1].classList.add('active');
       }
@@ -144,7 +151,6 @@
 
   window.modules.add('productView', ProductView);
   window.modules.add('productSlider', ProductSlider);
-
 })();
 
 window.app.prototype.init = function() {
